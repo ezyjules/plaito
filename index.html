@@ -127,11 +127,14 @@
   .gate-box{background:var(--card); border:1.5px solid var(--ink); border-radius:var(--radius); box-shadow:0 3px 0 var(--ink); padding:30px; max-width:380px; width:100%; text-align:center;}
   .gate-box h2{font-family:var(--display); font-weight:800; margin-bottom:8px;}
   .gate-box p{color:var(--ink-soft); font-size:.9rem; margin-bottom:14px;}
-  .gate-box input, .key-row input[type=password]{width:100%; font-family:var(--mono); font-size:1rem; padding:11px 14px; border:1.5px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); margin-bottom:12px;}
+  .gate-box input, .key-row input[type=password], .key-row input[type=text]{width:100%; font-family:var(--mono); font-size:1rem; padding:11px 14px; border:1.5px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); margin-bottom:12px;}
   .gate-box input:focus, .key-row input:focus{outline:3px solid var(--hi); border-color:var(--ink);}
   .gate-err{color:var(--cross); font-size:.85rem; min-height:1.2em; margin-bottom:8px;}
   #keyPanel .key-row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
   #keyPanel .key-row input[type=password]{flex:1; min-width:220px; margin-bottom:0;}
+  #profilePanel .key-row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+  #profilePanel .key-row input[type=text]{flex:1; min-width:220px; margin-bottom:0; font-family:var(--body);}
+  .profile-chip{display:inline-block; font-family:var(--body); font-weight:700; background:var(--mode-active); border:1.5px solid var(--hi-deep); border-radius:999px; padding:8px 16px; margin-right:10px;}
   .remember-row{display:flex; align-items:center; gap:7px; font-size:.85rem; color:var(--ink-soft); margin-top:10px;}
   .key-note{font-size:.82rem; color:var(--ink-soft); margin-top:10px;}
   .key-note a{color:var(--ink-soft);}
@@ -145,6 +148,10 @@
   .swatch.active{outline:3px solid var(--hi-deep); outline-offset:2px;}
   #voiceSelect{max-width:190px;}
   #rateSlider{width:84px; accent-color:var(--hi-deep);}
+  .pbar input[type=password]{font-family:var(--mono); font-size:.8rem; padding:7px 10px; border:1.5px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); width:160px;}
+  .bubble.typing{color:var(--ink-soft); font-style:italic;}
+  .bubble.typing::after{content:''; animation:dots 1.4s steps(4,end) infinite;}
+  #fxCanvas{position:fixed; inset:0; pointer-events:none; z-index:150;}
   @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
 </style>
 </head>
@@ -163,8 +170,8 @@
     <h1><span class="mark">AI Study Buddy</span></h1>
     <span class="scorebar">⭐ <b id="pts">0</b> &nbsp; 🔥 <b id="streak">0</b></span>
   </header>
-  <div class="ver" id="verLine">v1.4 · published 12 Jun 2026 · web edition</div>
-  <p class="sub">Year 9 maths · NSW Stage 5. Snap a photo of the page, highlight one question, and work through it together. Points for every question you finish — streaks for getting them right.</p>
+  <div class="ver" id="verLine">v1.6 · published 12 Jun 2026 · web edition</div>
+  <p class="sub">Snap a photo of a question, highlight it, and work through it together — any subject, any year level, any school system. Points for every question you finish — streaks for getting them right.</p>
 
   <div class="pbar">
     <div class="p-group" role="radiogroup" aria-label="Colour theme">
@@ -182,6 +189,11 @@
       <button class="quiet" id="testVoiceBtn">▶ Test</button>
       <button class="quiet" id="muteBtn" title="Turn voice on or off">🔊 On</button>
     </div>
+    <div class="p-group">
+      <span class="p-label">✨ Premium voice</span>
+      <input type="password" id="elKeyInput" placeholder="ElevenLabs key (optional)" autocomplete="off" aria-label="ElevenLabs API key">
+      <button class="quiet" id="elKeyBtn">Use</button>
+    </div>
   </div>
 
   <div class="panel" id="keyPanel">
@@ -192,6 +204,22 @@
     </div>
     <label class="remember-row"><input type="checkbox" id="rememberKey" checked> Remember on this device (don't tick on shared computers)</label>
     <p class="key-note">Your key stays in this browser only — it's sent to Anthropic with each question, never anywhere else. Get one at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> → API Keys.</p>
+  </div>
+
+  <div class="panel" id="profilePanel">
+    <div class="section-label">🎓 Your class — lock it in (or leave blank to adapt automatically)</div>
+    <div id="profileEdit">
+      <div class="key-row">
+        <input type="text" id="profileInput" placeholder="e.g. Year 9, NSW Australia — surds, indices and trigonometry" aria-label="Your country, year level and topic">
+        <button id="profileMicBtn" title="Dictate your class">🎙️</button>
+        <button class="primary" id="profileLockBtn">Lock in</button>
+      </div>
+      <p class="key-note">Country, year level, school system, current topic — anything that helps pitch the tutoring. This shapes the terminology, the expected methods, and the difficulty of practice questions.</p>
+    </div>
+    <div id="profileLocked" style="display:none">
+      <span class="profile-chip" id="profileChipText"></span>
+      <button class="quiet" id="profileEditBtn">✏️ Change</button>
+    </div>
   </div>
 
   <div class="modes" role="radiogroup" aria-label="What do you want to do?">
@@ -209,7 +237,7 @@
   <div class="panel" id="cameraPanel">
     <div class="capture-hero">
       <button class="primary big" id="takePhotoBtn">📷 Take a photo of the question</button>
-      <p class="cap-note">On a <b>phone or iPad</b> this opens the camera straight away — point, shoot, done. On the <b>Mac</b> it opens a picker: in Safari choose <b>Take Photo</b> to snap with your iPhone, or pick an existing photo.</p>
+      <p class="cap-note" id="capNote">On a <b>phone or iPad</b> this opens the camera straight away — point, shoot, done. On the <b>Mac</b> it opens a picker: in Safari choose <b>Take Photo</b> to snap with your iPhone, or pick an existing photo.</p>
     </div>
     <div class="cam-stage" id="camStage" style="display:none">
       <div class="cam-off" id="camOff"></div>
@@ -309,6 +337,7 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<canvas id="fxCanvas"></canvas>
 
 <script>
 /* ================= standalone setup: passcode + API key ================= */
@@ -378,9 +407,53 @@ function award(points, msg, bumpStreak){
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
+  confettiBurst(bumpStreak === true ? 180 : 60);   // big shower for a correct answer
+}
+
+/* confetti */
+const fx = { parts: [], running: false };
+function confettiBurst(count){
+  const cv = $('fxCanvas');
+  cv.width = innerWidth; cv.height = innerHeight;
+  const css = getComputedStyle(document.documentElement);
+  const colors = ['--hi','--hi-deep','--tick'].map(v => css.getPropertyValue(v).trim()).concat(['#FF6B9C','#5BD1E8','#9D7BFF']);
+  for (let i = 0; i < count; i++){
+    const a = -Math.PI/2 + (Math.random()-0.5) * 1.7;
+    const s = 7 + Math.random() * 9;
+    fx.parts.push({
+      x: innerWidth/2, y: innerHeight*0.72,
+      vx: Math.cos(a)*s, vy: Math.sin(a)*s, g: 0.28,
+      w: 5+Math.random()*6, h: 8+Math.random()*8,
+      r: Math.random()*Math.PI, vr: (Math.random()-0.5)*0.3,
+      c: colors[Math.floor(Math.random()*colors.length)]
+    });
+  }
+  if (!fx.running){ fx.running = true; requestAnimationFrame(fxTick); }
+}
+function fxTick(){
+  const cv = $('fxCanvas'), ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  fx.parts = fx.parts.filter(p => p.y < cv.height + 30);
+  for (const p of fx.parts){
+    p.vy += p.g; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+    ctx.fillStyle = p.c; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+    ctx.restore();
+  }
+  if (fx.parts.length){ requestAnimationFrame(fxTick); }
+  else { fx.running = false; ctx.clearRect(0, 0, cv.width, cv.height); }
 }
 
 /* ================= capture: photo first ================= */
+// Honest labelling: on desktop this button opens a picker, not a camera
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+if (!isMobile){
+  $('takePhotoBtn').textContent = '🖼️ Upload a photo or screenshot';
+  $('capNote').innerHTML = 'Pick any image of the question. In <b>Safari</b> the picker includes <b>Take Photo</b>, which snaps with your iPhone. The live camera below and <kbd>⌘V</kbd> paste work too.';
+}
+function stopCamera(){
+  if (camStream){ camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+}
 function readImageFile(file){
   if (!file || !file.type.startsWith('image/')) return;
   const r = new FileReader();
@@ -474,6 +547,8 @@ function openSelector(dataUrl){
   pageDataUrl = dataUrl;
   $('pageImg').src = dataUrl;
   selBox = null; $('selRect').style.display='none'; $('tutorSelBtn').disabled = true;
+  stopCamera();                                  // free the camera + its indicator light
+  $('cameraPanel').style.display='none';         // get the big capture UI out of the way
   $('selector').style.display='block';
   $('results').style.display='none';
   $('selector').scrollIntoView({behavior:'smooth', block:'start'});
@@ -511,7 +586,12 @@ function drawSel(){
   r.style.left = selBox.x+'px'; r.style.top = selBox.y+'px';
   r.style.width = selBox.w+'px'; r.style.height = selBox.h+'px';
 }
-$('retakeBtn').addEventListener('click', () => { $('selector').style.display='none'; window.scrollTo({top:0, behavior:'smooth'}); });
+$('retakeBtn').addEventListener('click', () => {
+  $('selector').style.display='none';
+  $('cameraPanel').style.display='block';
+  startCamera();
+  window.scrollTo({top:0, behavior:'smooth'});
+});
 
 function prepImage(dataUrl, cropBox, done){
   const img = new Image();
@@ -545,13 +625,40 @@ $('wholePageBtn').addEventListener('click', () => {
 $('nextOnPageBtn').addEventListener('click', () => { stopSpeak(); openSelector(pageDataUrl); });
 
 /* ================= API ================= */
-const SYSTEM = `You are a patient, encouraging maths tutor for a Year 9 student in NSW, Australia (Stage 5 syllabus: algebraic techniques, linear equations, measurement, surds and indices, right-angled trigonometry). You'll be shown a photo of one maths question (sometimes with the student's handwritten or typed working), and the student will ask follow-up questions in conversation.
+/* ================= class profile (agnostic tutoring) ================= */
+let profile = localStorage.getItem('sb_profile') ?? '';
+function renderProfile(){
+  const locked = localStorage.getItem('sb_profile') !== null;
+  $('profileEdit').style.display = locked ? 'none' : 'block';
+  $('profileLocked').style.display = locked ? 'block' : 'none';
+  $('profileChipText').textContent = profile ? '🎓 ' + profile : '🪄 Adapting automatically to each question';
+}
+$('profileLockBtn').addEventListener('click', () => {
+  profile = $('profileInput').value.trim();
+  localStorage.setItem('sb_profile', profile);
+  renderProfile();
+});
+$('profileEditBtn').addEventListener('click', () => {
+  $('profileInput').value = profile;
+  localStorage.removeItem('sb_profile');
+  renderProfile();
+});
+renderProfile();
 
-Always: Australian spelling and terminology. Warm, never condescending. Write all maths as plain unicode text (√, ², ³, ×, ÷, ≈, °, π, fractions like 3/4) — never LaTeX. Keep language natural to read aloud.
+function buildSystem(){
+  const pitch = profile
+    ? `The student's context, set by them or their parent: "${profile}". Pitch every explanation, method, and piece of terminology to that level and curriculum, use only techniques a student at that stage would have met, match the regional spelling and conventions, and generate practice questions at that standard.`
+    : `No level or curriculum has been set. Infer the likely subject, country, and level from the question in the photo itself and pitch explanations accordingly; if genuinely ambiguous, pitch to a typical secondary-school level.`;
+  return `You are a patient, encouraging study tutor for one student. ${pitch}
+
+You'll be shown a photo of one question (sometimes with the student's handwritten or typed working), and the student will ask follow-up questions in conversation.
+
+Always: warm, never condescending. Works for any subject — maths, sciences, languages, humanities. If maths notation is involved, write it as plain unicode text (√, ², ³, ×, ÷, ≈, °, π, fractions like 3/4) — never LaTeX. Keep language natural to read aloud.
 
 When the request asks for JSON, respond with ONLY valid JSON — no markdown fences, no preamble. When the request is a conversational follow-up, reply in plain friendly text, 1–5 sentences. In follow-ups, never state the final answer unless told it has already been revealed; guide toward it instead.
 
 If the photo shows more than one question, work on the most prominent/complete one and mention which in question_readback.`;
+}
 
 const SOLVE_SHAPE = `{"topic":"short label e.g. Trigonometry","question_readback":"the question read back in full as natural speech","approach":"2-4 sentences on HOW to think about and start it, naming the rule or idea. Do NOT state or strongly imply the final answer.","hints":["gentle nudge","names the exact technique or first step","walks to the brink of the answer without stating it"],"final_answer":"concise final answer","worked_solution":[{"explain":"what this step does and why","working":"the maths"}]}`;
 const CHECK_SHAPE = `{"topic":"short label","question_readback":"the question read back as natural speech","verdict":"correct" or "not_quite" or "no_working","summary":"1-3 sentences. If correct: confirm warmly, note anything done especially well. If not_quite: say roughly where it goes off track WITHOUT giving the correct final answer. If no_working: explain you can see the question but no attempt, ask to retake with the working in the highlighted area.","step_review":[{"working":"the student's step as written","status":"ok" or "issue","comment":"confirm why it's right, or unpack what went wrong and the idea to fix it"}],"correct_answer":"the correct final answer","worked_solution":[{"explain":"...","working":"..."}]}`;
@@ -570,7 +677,7 @@ async function callAPI(messages){
       "anthropic-version": "2023-06-01",
       "anthropic-dangerous-direct-browser-access": "true"
     },
-    body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:2000, system:SYSTEM, messages })
+    body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:2000, system:buildSystem(), messages })
   });
   const data = await response.json();
   if (data.error){
@@ -588,7 +695,9 @@ async function startTutoring(){
   if (!imageData) return;
   stopSpeak();
   $('selector').style.display='none';
-  $('errorBox').style.display='none'; $('results').style.display='none'; $('loading').style.display='block';
+  $('errorBox').style.display='none'; $('results').style.display='none';
+  $('loading').innerHTML = 'reading the question<span class="dots"></span>';
+  $('loading').style.display='block';
   const prompt = mode==='check'
     ? "Here is a question with the student's attempt. Check it. Respond ONLY with JSON in this exact shape: " + CHECK_SHAPE
     : "Here is a question the student is stuck on. Coach them without giving the answer up front. Respond ONLY with JSON in this exact shape: " + SOLVE_SHAPE;
@@ -735,7 +844,10 @@ async function askTutor(){
   const q = $('askInput').value.trim();
   if (!q || !history.length) return;
   $('askInput').value=''; addBubble('You', q);
-  $('askBtn').disabled = true;
+  $('askBtn').disabled = true; $('askInput').disabled = true;
+  const tb = document.createElement('div');
+  tb.className = 'bubble tutor typing'; tb.textContent = 'Tutor is thinking';
+  $('chatThread').appendChild(tb); tb.scrollIntoView({behavior:'smooth', block:'nearest'});
   history.push({ role:"user", content: q + "\n\n(Conversational follow-up — plain friendly text, 1–5 sentences. The final answer has " + (answerRevealed ? "already been revealed; you may discuss it." : "NOT been revealed — do not state it.") + ")" });
   try{
     const text = await callAPI(history);
@@ -745,13 +857,28 @@ async function askTutor(){
   }catch(err){
     history.pop();
     addBubble('Tutor', "Sorry, I dropped out for a second — ask me that again?");
-  }finally{ $('askBtn').disabled = false; }
+  }finally{
+    tb.remove();
+    $('askBtn').disabled = false; $('askInput').disabled = false; $('askInput').focus();
+  }
 }
 $('askBtn').addEventListener('click', askTutor);
 $('askInput').addEventListener('keydown', e => { if (e.key==='Enter') askTutor(); });
 
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (SR){
+  // dictation for the class profile field
+  const recP = new SR(); recP.lang='en-AU'; recP.interimResults=false;
+  let listeningP = false;
+  $('profileMicBtn').addEventListener('click', () => {
+    if (listeningP){ recP.stop(); return; }
+    stopSpeak();
+    try{ recP.start(); listeningP=true; $('profileMicBtn').classList.add('listening'); }catch(e){}
+  });
+  recP.onresult = e => { $('profileInput').value = e.results[0][0].transcript; };
+  recP.onend = () => { listeningP=false; $('profileMicBtn').classList.remove('listening'); };
+  recP.onerror = () => { listeningP=false; $('profileMicBtn').classList.remove('listening'); };
+
   const rec = new SR(); rec.lang='en-AU'; rec.interimResults=false;
   let listening = false;
   $('micBtn').addEventListener('click', () => {
@@ -762,13 +889,17 @@ if (SR){
   rec.onresult = e => { $('askInput').value = e.results[0][0].transcript; askTutor(); };
   rec.onend = () => { listening=false; $('micBtn').classList.remove('listening'); };
   rec.onerror = () => { listening=false; $('micBtn').classList.remove('listening'); };
-} else { $('micBtn').style.display='none'; }
+} else { $('micBtn').style.display='none'; $('profileMicBtn').style.display='none'; }
 
 /* ================= similar question ================= */
 $('similarBtn').addEventListener('click', async () => {
   if (!history.length) return;
   stopSpeak();
-  $('loading').style.display='block'; $('similarBtn').disabled=true;
+  $('similarBtn').disabled=true;
+  $('similarBtn').textContent = '⏳ Writing a similar question…';
+  $('loading').innerHTML = 'cooking up a similar question<span class="dots"></span>';
+  $('loading').style.display='block';
+  $('loading').scrollIntoView({behavior:'smooth', block:'center'});
   history.push({ role:"user", content: "Make ONE new practice question testing exactly the same skill as the original — same structure and difficulty, different numbers or context. Respond ONLY with JSON in this exact shape, where question_text is the new question written out in full: " + SOLVE_SHAPE.replace('{"topic"','{"question_text":"the new question written out in full","topic"') });
   try{
     const text = await callAPI(history);
@@ -778,45 +909,78 @@ $('similarBtn').addEventListener('click', async () => {
   }catch(err){
     history.pop();
     showError("Couldn't cook up a practice question just then — give it another go.");
-  }finally{ $('loading').style.display='none'; $('similarBtn').disabled=false; }
+  }finally{ $('loading').style.display='none'; $('similarBtn').disabled=false; $('similarBtn').textContent='🔁 Similar question to practise'; }
 });
 
 $('resetBtn').addEventListener('click', () => {
   stopSpeak();
   pageDataUrl = null; imageData = null; coaching = null; history = [];
   $('selector').style.display='none'; $('results').style.display='none';
+  $('cameraPanel').style.display='block';
+  startCamera();
   window.scrollTo({top:0, behavior:'smooth'});
 });
 function showError(msg){ $('errorBox').textContent=msg; $('errorBox').style.display='block'; $('loading').style.display='none'; }
 
-/* ================= speech: pick your voice ================= */
-let voiceList = [], chosenVoice = null, muted = false;
+/* ================= speech: system voices + optional premium (ElevenLabs) ================= */
+let voiceList = [], muted = false, currentAudio = null;
+let elKey = localStorage.getItem('sb_el_key') || null, elVoices = [];
+
+function rebuildVoiceOptions(){
+  const sel = $('voiceSelect');
+  const prev = sel.value;
+  sel.innerHTML = '';
+  elVoices.forEach(v => {
+    const o = document.createElement('option');
+    o.value = 'el:' + v.voice_id; o.textContent = '⭐ ' + v.name;
+    sel.appendChild(o);
+  });
+  voiceList.forEach((v,i) => {
+    const o = document.createElement('option');
+    o.value = 'sys:' + i; o.textContent = v.name + ' (' + v.lang + ')';
+    sel.appendChild(o);
+  });
+  if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+}
 function populateVoices(){
   if (!('speechSynthesis' in window)) return;
   const all = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
   if (!all.length) return;
-  // best first: Australian, then enhanced/premium quality, then the rest alphabetically
   const rank = v => (v.lang==='en-AU' ? 0 : 2) - (/premium|enhanced|siri/i.test(v.name) ? 1 : 0);
   voiceList = all.sort((a,b) => rank(a)-rank(b) || a.name.localeCompare(b.name));
-  const sel = $('voiceSelect');
-  const prev = sel.value;
-  sel.innerHTML = '';
-  voiceList.forEach((v,i) => {
-    const o = document.createElement('option');
-    o.value = i; o.textContent = v.name + ' (' + v.lang + ')';
-    sel.appendChild(o);
-  });
-  // keep current pick across refreshes; otherwise default to the first (best-ranked) voice
-  let idx = 0;
-  if (prev !== '' && voiceList[+prev]) idx = +prev;
-  sel.value = idx;
-  chosenVoice = voiceList[idx];
+  rebuildVoiceOptions();
 }
 if ('speechSynthesis' in window){ speechSynthesis.onvoiceschanged = populateVoices; populateVoices(); }
-$('voiceSelect').addEventListener('change', e => { chosenVoice = voiceList[+e.target.value]; });
+
+async function loadElVoices(){
+  if (!elKey) return;
+  try{
+    const r = await fetch('https://api.elevenlabs.io/v1/voices', { headers:{ 'xi-api-key': elKey } });
+    if (!r.ok) throw new Error('rejected');
+    const data = await r.json();
+    elVoices = data.voices || [];
+    rebuildVoiceOptions();
+    if (elVoices.length){
+      $('voiceSelect').value = 'el:' + elVoices[0].voice_id;
+      $('elKeyInput').value = '';
+      $('elKeyInput').placeholder = '⭐ premium connected';
+    }
+  }catch(e){
+    elKey = null; localStorage.removeItem('sb_el_key'); elVoices = []; rebuildVoiceOptions();
+    alert('That ElevenLabs key was rejected — double-check it at elevenlabs.io.');
+  }
+}
+$('elKeyBtn').addEventListener('click', () => {
+  const k = $('elKeyInput').value.trim();
+  if (!k) return;
+  elKey = k; localStorage.setItem('sb_el_key', k);
+  loadElVoices();
+});
+if (elKey) loadElVoices();
+
 $('testVoiceBtn').addEventListener('click', () => {
   const wasMuted = muted; muted = false;
-  speak("G'day! This is how I'll sound when we do your maths together. The square root of 144 is... well, that would be telling.");
+  speak("G'day! This is how I'll sound when we work through your questions together. The square root of 144 is... well, that would be telling.");
   muted = wasMuted;
 });
 $('muteBtn').addEventListener('click', () => {
@@ -824,17 +988,54 @@ $('muteBtn').addEventListener('click', () => {
   $('muteBtn').textContent = muted ? '🔇 Off' : '🔊 On';
   if (muted) stopSpeak();
 });
-function speak(text){
-  if (!('speechSynthesis' in window) || !text || muted) return;
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(String(text)
+
+function speechText(text){
+  return String(text)
     .replace(/√/g,' the square root of ').replace(/²/g,' squared').replace(/³/g,' cubed')
-    .replace(/≈/g,' is approximately ').replace(/°/g,' degrees').replace(/π/g,' pi '));
-  if (chosenVoice) u.voice = chosenVoice;
-  u.rate = parseFloat($('rateSlider').value) || 1;
-  speechSynthesis.speak(u);
+    .replace(/≈/g,' is approximately ').replace(/°/g,' degrees').replace(/π/g,' pi ');
 }
-function stopSpeak(){ if ('speechSynthesis' in window) speechSynthesis.cancel(); }
+function speak(text){
+  if (!text || muted) return;
+  stopSpeak();
+  const selVal = $('voiceSelect').value || '';
+  const rate = parseFloat($('rateSlider').value) || 1;
+  const spoken = speechText(text);
+  if (selVal.startsWith('el:') && elKey){
+    elSpeak(spoken, selVal.slice(3), rate);
+  } else if ('speechSynthesis' in window){
+    const u = new SpeechSynthesisUtterance(spoken);
+    const v = selVal.startsWith('sys:') ? voiceList[+selVal.slice(4)] : voiceList[0];
+    if (v) u.voice = v;
+    u.rate = rate;
+    speechSynthesis.speak(u);
+  }
+}
+async function elSpeak(text, voiceId, rate){
+  try{
+    const r = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceId + '?output_format=mp3_44100_96', {
+      method:'POST',
+      headers:{ 'xi-api-key': elKey, 'Content-Type':'application/json' },
+      body: JSON.stringify({ text: text.slice(0, 2400), model_id: 'eleven_turbo_v2_5' })
+    });
+    if (!r.ok) throw new Error('tts failed');
+    const blob = await r.blob();
+    currentAudio = new Audio(URL.createObjectURL(blob));
+    currentAudio.playbackRate = rate;
+    currentAudio.play();
+  }catch(e){
+    // premium hiccup — fall back to the system voice so the tutoring never goes silent
+    if ('speechSynthesis' in window){
+      const u = new SpeechSynthesisUtterance(text);
+      if (voiceList[0]) u.voice = voiceList[0];
+      u.rate = rate;
+      speechSynthesis.speak(u);
+    }
+  }
+}
+function stopSpeak(){
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  if (currentAudio){ currentAudio.pause(); currentAudio = null; }
+}
 
 /* ================= colour themes ================= */
 const THEMES = {
