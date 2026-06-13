@@ -169,6 +169,17 @@
   .ans-tick{font-family:var(--display); font-weight:800; color:var(--tick); margin-left:auto;}
   .ans-arrow{font-family:var(--mono); font-size:.8rem; color:var(--ink-soft);}
   .ans-confirm{font-size:.82rem; color:var(--ink-soft); margin-bottom:10px;}
+  #queueBanner{display:flex; align-items:center; gap:12px; flex-wrap:wrap; background:var(--mode-active); border:1.5px solid var(--hi-deep); border-radius:12px; padding:10px 14px; margin-bottom:14px;}
+  #queueText{font-weight:700; font-size:.9rem;}
+  #strategyWrap{margin:6px 0 14px;}
+  .strat-q{font-weight:700; margin:6px 0 10px;}
+  .strat-opt{display:block; width:100%; text-align:left; border:1.5px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); padding:12px 15px; margin:8px 0; cursor:pointer; box-shadow:0 2px 0 var(--line); font-family:var(--body); font-size:.95rem; transition:transform .08s;}
+  .strat-opt:hover{transform:translateY(-1px);}
+  .strat-opt.correct{border-color:var(--tick); background:#EAF7F0; border-left:6px solid var(--tick);}
+  .strat-opt.wrong{border-color:var(--cross); background:#FFF6F5; border-left:6px solid var(--cross); opacity:.85;}
+  .strat-fb{font-size:.9rem; color:var(--ink-soft); margin:6px 0 4px; padding-left:4px;}
+  .strat-done{font-family:var(--display); font-weight:800; color:var(--tick); margin-top:8px;}
+  .strat-progress{font-family:var(--mono); font-size:.72rem; color:var(--ink-soft); letter-spacing:.08em;}
   .modal-bg{position:fixed; inset:0; z-index:300; background:rgba(20,33,61,.55); display:none; align-items:flex-start; justify-content:center; padding:24px 16px; overflow:auto;}
   .modal-bg.show{display:flex;}
   .guide{background:var(--card); border:1.5px solid var(--ink); border-radius:var(--radius); box-shadow:0 3px 0 var(--ink); max-width:720px; width:100%; padding:30px 32px; margin:auto;}
@@ -236,6 +247,18 @@
 </style>
 </head>
 <body>
+<div class="modal-bg" id="splitModal" role="dialog" aria-modal="true" aria-label="Multiple questions detected">
+  <div class="guide" style="max-width:520px">
+    <h2>Looks like more than one question</h2>
+    <p class="lead">I can split these and work through them one at a time — the ones with an answer get checked, the blank ones get coached. Or keep it as a single question.</p>
+    <div class="box" id="splitList"></div>
+    <div class="modal-actions">
+      <button class="primary" id="splitYesBtn">Split &amp; go one by one</button>
+      <button class="quiet" id="splitNoBtn">Keep as one question</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="helpModal" role="dialog" aria-modal="true" aria-label="What is this and how to get set up">
   <div class="guide">
     <h2>AI Study Buddy — what it is &amp; how to start</h2>
@@ -318,7 +341,7 @@
   <div class="scoreboard-row">
     <span class="scorebar">⭐ <b id="pts">0</b> &nbsp; 🔥 <b id="streak">0</b></span>
   </div>
-  <div class="ver" id="verLine">v2.11 beta · published 12 Jun 2026 · web edition</div>
+  <div class="ver" id="verLine">v3.0 beta · published 13 Jun 2026 · web edition</div>
   <p class="sub">Snap a photo of a question, highlight it, and work through it together — any subject, any year level, any school system. Points for every question you finish — streaks for getting them right.</p>
   <p class="ver">🧪 This is a beta — the tutor occasionally makes a mistake, especially with arithmetic or messy handwriting. If an answer looks off, say so in the chat: checking is half the learning.</p>
 
@@ -455,6 +478,10 @@
       <button class="primary" onclick="goNewPhoto()">📷 Check another question</button>
       <button onclick="goNextOnPage()">📄 Next question on this page</button>
     </div>
+    <div id="queueBanner" style="display:none">
+      <span id="queueText"></span>
+      <button class="primary" id="queueNextBtn" onclick="goNextInQueue()">→ Next part</button>
+    </div>
     <div id="stickyQ" title="Tap to enlarge / shrink">
       <span class="sq-label">Question</span>
       <img id="stickyImg" alt="The question being worked on" style="display:none">
@@ -497,8 +524,14 @@
     <div class="block answer-block" id="answerBlock">
       <div class="section-label">Answer</div>
       <span class="answer-final" id="finalAnswer"></span>
-      <div class="section-label">Worked solution</div>
-      <ol class="steps" id="workedSteps"></ol>
+      <div id="strategyWrap">
+        <div class="section-label">Strategy — your call at each step</div>
+        <div id="strategyArea"></div>
+      </div>
+      <div id="workedWrap">
+        <div class="section-label">Worked solution</div>
+        <ol class="steps" id="workedSteps"></ol>
+      </div>
       <div class="speak-row">
         <button class="quiet" onclick="speak(sectionText.solution)">🔊 Read aloud</button>
         <button class="quiet" onclick="stopSpeak()">⏹ Stop</button>
@@ -681,7 +714,7 @@ document.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer.
 
 /* Enter key drives the flow: highlight drawn → analyse; live camera up → snap */
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape'){ $('helpModal').classList.remove('show'); return; }
+  if (e.key === 'Escape'){ $('helpModal').classList.remove('show'); $('splitModal').classList.remove('show'); return; }
   if (e.key !== 'Enter') return;
   const t = e.target;
   if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
@@ -855,12 +888,67 @@ function prepImage(dataUrl, cropBox, done){
   img.src = dataUrl;
 }
 $('tutorSelBtn').addEventListener('click', () => {
-  prepImage(pageDataUrl, selBox, (b64, url) => { imageData = b64; focusDataUrl = url; startTutoring(); });
+  prepImage(pageDataUrl, selBox, (b64, url) => { imageData = b64; focusDataUrl = url; detectParts(); });
 });
 $('wholePageBtn').addEventListener('click', () => {
-  prepImage(pageDataUrl, null, (b64, url) => { imageData = b64; focusDataUrl = url; startTutoring(); });
+  prepImage(pageDataUrl, null, (b64, url) => { imageData = b64; focusDataUrl = url; detectParts(); });
 });
+
+// queue for multi-part questions
+let partQueue = [];   // [{question, student_answer, label}]
+async function detectParts(){
+  stopSpeak();
+  $('selector').classList.add('fade-out');
+  setTimeout(() => { $('selector').style.display='none'; $('selector').classList.remove('fade-out'); }, 260);
+  $('errorBox').style.display='none'; $('results').style.display='none';
+  setLoading('looking at the question');
+  $('analyzeThumb').src = focusDataUrl || ''; $('analyzeThumb').style.display = focusDataUrl ? 'block' : 'none';
+  $('loading').style.display='block'; thinkingOn();
+  try{
+    const text = await callAPI([{ role:'user', content:[
+      { type:'image', source:{ type:'base64', media_type:'image/png', data:imageData } },
+      { type:'text', text:"How many separate sub-questions are in this image that a student would answer individually (e.g. i, ii, iii or a, b)? Respond ONLY with JSON in this shape: " + SPLIT_SHAPE }
+    ]}]);
+    const det = parseJSON(text);
+    $('loading').style.display='none'; thinkingOff();
+    if (det.parts && det.parts.length > 1){
+      offerSplit(det);
+    } else {
+      startTutoring();   // single question — proceed as normal
+    }
+  }catch(err){
+    $('loading').style.display='none'; thinkingOff();
+    startTutoring();     // if detection fails, just treat it as one question
+  }
+}
+function offerSplit(det){
+  partQueue = det.parts.map(pt => ({
+    question: pt.question || ((det.shared_instruction ? det.shared_instruction + ' ' : '') + (pt.label ? '(' + pt.label + ') ' : '')),
+    student_answer: pt.student_answer || '',
+    label: pt.label || ''
+  }));
+  const list = det.parts.map(pt => '• ' + (pt.label ? '(' + pt.label + ') ' : '') + (pt.student_answer ? '— your answer: ' + pt.student_answer : '— no attempt')).join('<br>');
+  $('splitList').innerHTML = (det.shared_instruction ? '<b>' + escapeHtml(det.shared_instruction) + '</b><br>' : '') + list;
+  $('splitModal').classList.add('show');
+}
+$('splitYesBtn').addEventListener('click', () => {
+  $('splitModal').classList.remove('show');
+  runQueue();
+});
+$('splitNoBtn').addEventListener('click', () => {
+  $('splitModal').classList.remove('show');
+  partQueue = [];
+  startTutoring();   // treat the whole crop as one question
+});
+function runQueue(){
+  if (!partQueue.length) return;
+  const next = partQueue.shift();
+  // auto-pick mode: check if there's an attempt, else coach
+  setMode(next.student_answer ? 'check' : 'solve');
+  startTutoring(next);
+}
 function goNextOnPage(){ stopSpeak(); openSelector(pageDataUrl); }
+function goNextInQueue(){ if (partQueue.length) runQueue(); }
 
 /* ================= API ================= */
 /* ================= class profile (agnostic tutoring) ================= */
@@ -880,11 +968,13 @@ When the request asks for JSON, respond with ONLY valid JSON — no markdown fen
 
 If the photo shows more than one question, work on the most prominent/complete one and mention which in question_readback.
 
+The "strategy" array teaches the THINKING behind the solution: 3-5 multiple-choice decision points that mirror the worked solution, each with one clearly-best option (its index in "correct", 0-based) and a "why" explaining the reasoning. Make the wrong options plausible-but-weaker so choosing teaches real judgement. Speak prompts and why-text to "you".
+
 Accuracy check: arithmetic slips are unacceptable in a tutor. Before responding, silently recompute every numeric and algebraic step a second, independent way (e.g. substitute a value, or re-add coefficients separately) and confirm the final answer matches the worked solution; fix any discrepancy before you reply.`;
 }
 
-const SOLVE_SHAPE = `{"topic":"short label e.g. Trigonometry","question_readback":"the question read back in full as natural speech","approach":"2-4 sentences addressed to you (\"start by…\", \"you\u2019ll want to…\") on HOW to think about and start it, naming the rule or idea. Do NOT state or strongly imply the final answer.","hints":["gentle nudge","names the exact technique or first step","walks to the brink of the answer without stating it"],"final_answer":"concise final answer","worked_solution":[{"explain":"what this step does and why, spoken to you as \"you\"","working":"the maths"}]}`;
-const CHECK_SHAPE = `{"topic":"short label","question_readback":"the question read back as natural speech","student_answer":"the student's OWN final answer, transcribed exactly as written in the photo (their handwriting). Empty string if no attempt is visible.","verdict":"correct" or "not_quite" or "no_working","summary":"1-3 sentences addressed to the student as \"you\". If correct: confirm warmly (e.g. \"You\u2019ve nailed this\"), note anything you did especially well. If not_quite: say roughly where you go off track WITHOUT giving the correct final answer. If no_working: say you can see the question but no attempt from you, and ask to retake with your working in the highlighted area.","step_review":[{"working":"the student's step as written","status":"ok" or "issue","comment":"addressed to you in second person: confirm why your step is right, or unpack what went wrong and the idea to fix it"}],"correct_answer":"the correct final answer","worked_solution":[{"explain":"...","working":"..."}]}`;
+const SOLVE_SHAPE = `{"topic":"short label e.g. Trigonometry","question_readback":"the question read back in full as natural speech","approach":"2-4 sentences addressed to you (\"start by…\", \"you\u2019ll want to…\") on HOW to think about and start it, naming the rule or idea. Do NOT state or strongly imply the final answer.","hints":["gentle nudge","names the exact technique or first step","walks to the brink of the answer without stating it"],"final_answer":"concise final answer","worked_solution":[{"explain":"what this step does and why, spoken to you as \"you\"","working":"the maths"}],"strategy":[{"prompt":"a decision the student faces at this step, asked to you e.g. \"What\u2019s your first move?\"","options":["3-4 plausible next moves, only ONE clearly best"],"correct":0,"why":"why the correct option is the smart strategic choice, and briefly why the others are weaker"}]}`;
+const CHECK_SHAPE = `{"topic":"short label","question_readback":"the question read back as natural speech","student_answer":"the student's OWN final answer, transcribed exactly as written in the photo (their handwriting). Empty string if no attempt is visible.","verdict":"correct" or "not_quite" or "no_working","summary":"1-3 sentences addressed to the student as \"you\". If correct: confirm warmly (e.g. \"You\u2019ve nailed this\"), note anything you did especially well. If not_quite: say roughly where you go off track WITHOUT giving the correct final answer. If no_working: say you can see the question but no attempt from you, and ask to retake with your working in the highlighted area.","step_review":[{"working":"the student's step as written","status":"ok" or "issue","comment":"addressed to you in second person: confirm why your step is right, or unpack what went wrong and the idea to fix it"}],"correct_answer":"the correct final answer","worked_solution":[{"explain":"...","working":"..."}],"strategy":[{"prompt":"a decision faced at this step, asked to you e.g. \"What\u2019s the first move?\"","options":["3-4 plausible moves, only ONE clearly best"],"correct":0,"why":"why the correct option is the smart choice and why the others are weaker"}]}`;
 
 function toOpenAIMessages(messages){
   const out = [{ role:'system', content: buildSystem() }];
@@ -939,12 +1029,12 @@ async function callAPI(messages){
   return (data.content || []).filter(b => b.type==='text').map(b => b.text).join('\n');
 }
 const parseJSON = t => JSON.parse(t.replace(/```json|```/g,'').trim());
+const SPLIT_SHAPE = `{"shared_instruction":"any instruction that applies to all parts, e.g. 'Simplify completely' — empty string if none","parts":[{"label":"the part label as printed, e.g. 'i' or 'a'","question":"the full question text for this part, with the shared instruction prepended so it stands alone","student_answer":"the student's handwritten answer for THIS part, transcribed exactly. Empty string if none visible"}]}`;
 function escapeHtml(x){ return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-async function startTutoring(){
+async function startTutoring(part){
   if (!imageData) return;
   stopSpeak();
-  // smooth transition: shrink the captured page into a thumbnail beside the loader instead of vanishing
   $('analyzeThumb').src = focusDataUrl || pageDataUrl || '';
   $('analyzeThumb').style.display = (focusDataUrl || pageDataUrl) ? 'block' : 'none';
   $('selector').classList.add('fade-out');
@@ -953,9 +1043,16 @@ async function startTutoring(){
   setLoading(mode==='check' ? 'reviewing your answer' : 'reviewing the question');
   $('loading').style.display='block';
   thinkingOn();
-  const prompt = mode==='check'
+  // when working a specific sub-part, tell the tutor exactly which one (and the attempt) so it doesn't grab the wrong part
+  let partNote = '';
+  if (part){
+    partNote = "\n\nFocus ONLY on this specific sub-question: \"" + part.question + "\"."
+      + (part.student_answer ? " The student's handwritten answer for this part is: \"" + part.student_answer + "\". Treat that as their attempt." : " There is no attempt for this part yet.")
+      + " Ignore any other sub-parts visible in the image.";
+  }
+  const prompt = (mode==='check'
     ? "Here is a question with the student's attempt. Check it. Respond ONLY with JSON in this exact shape: " + CHECK_SHAPE
-    : "Here is a question the student is stuck on. Coach them without giving the answer up front. Respond ONLY with JSON in this exact shape: " + SOLVE_SHAPE;
+    : "Here is a question the student is stuck on. Coach them without giving the answer up front. Respond ONLY with JSON in this exact shape: " + SOLVE_SHAPE) + partNote;
   history = [{ role:"user", content:[
     { type:"image", source:{ type:"base64", media_type:"image/png", data:imageData } },
     { type:"text", text:prompt }
@@ -965,14 +1062,25 @@ async function startTutoring(){
     history.push({ role:"assistant", content:text });
     coaching = parseJSON(text);
     if (coaching.error) throw new Error(coaching.error);
-    session.push({ topic: coaching.topic || 'Question', mode, isPractice:false, coaching, history, focusDataUrl, pageDataUrl, revealed:false, hintsShown:0, chatHTML:'' });
+    const topicLabel = (part && part.label ? '(' + part.label + ') ' : '') + (coaching.topic || 'Question');
+    session.push({ topic: topicLabel, mode, isPractice:false, coaching, history, focusDataUrl, pageDataUrl, revealed:false, hintsShown:0, chatHTML:'', strategy:null, stratIdx:0 });
     currentIdx = session.length - 1;
     renderResults(false);
     renderSessionChips();
+    updateQueueBanner();
   }catch(err){
     showError("Hmm, couldn't read that one — " + (err.message||'') + ". Try highlighting a tighter box, or hold the page flatter and closer.");
     $('selector').style.display='block';
   }finally{ $('loading').style.display='none'; thinkingOff(); }
+}
+function updateQueueBanner(){
+  const b = $('queueBanner');
+  if (partQueue.length){
+    b.style.display='flex';
+    const nxt = partQueue[0];
+    $('queueText').textContent = partQueue.length + ' more part' + (partQueue.length>1?'s':'') + ' from this question waiting';
+    $('queueNextBtn').textContent = '→ Next: (' + (nxt.label||'?') + ')';
+  } else { b.style.display='none'; }
 }
 
 /* ================= rendering ================= */
@@ -1059,7 +1167,7 @@ function renderResults(isPractice, restore){
     } else {
       $('vault').style.display='block';
       $('vaultText').textContent = 'Have another crack with the feedback above — then check the full solution.';
-      $('revealBtn').textContent = "I've fixed it up — show the correct answer";
+      $('revealBtn').textContent = "I've fixed it up — show the answer & strategy";
       fillSolution('The correct answer is ' + (coaching.correct_answer||''));
       if (!restore){
         streak = 0; $('streak').textContent = streak;
@@ -1078,8 +1186,8 @@ function renderResults(isPractice, restore){
     $('nextHintBtn').style.display='inline-block'; $('nextHintBtn').textContent='Show hint 1';
     $('finalAnswer').textContent = coaching.final_answer || '';
     $('vault').style.display='block';
-    $('vaultText').textContent = 'Write your attempt down first — then check it.';
-    $('revealBtn').textContent = "I've had a go — reveal the answer";
+    $('vaultText').textContent = 'Write your attempt down first — then reveal the answer and walk the strategy.';
+    $('revealBtn').textContent = "I've had a go — reveal the answer & strategy";
     fillSolution('The answer is ' + (coaching.final_answer||''));
   }
 
@@ -1102,6 +1210,57 @@ function fillSolution(lead){
     sol += (s.explain||'') + '. ';
   });
   sectionText.solution = sol;
+  buildStrategy();
+}
+
+/* ===== interactive strategy walkthrough ===== */
+function buildStrategy(){
+  const strat = (coaching.strategy || []).filter(s => s && s.prompt && Array.isArray(s.options) && s.options.length);
+  const wrap = $('strategyWrap'), area = $('strategyArea');
+  if (!strat.length){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  area.innerHTML='';
+  const e = session[currentIdx];
+  const startAt = (e && e.stratIdx) ? e.stratIdx : 0;
+  renderStratStep(strat, startAt);
+}
+function renderStratStep(strat, i){
+  const area = $('strategyArea');
+  if (i >= strat.length){
+    const done = document.createElement('div');
+    done.className='strat-done';
+    done.textContent = '🎯 That\u2019s the full strategy — now you know the why, not just the what.';
+    area.appendChild(done);
+    return;
+  }
+  const step = strat[i];
+  const block = document.createElement('div');
+  block.style.marginTop = i ? '16px' : '0';
+  const prog = document.createElement('div'); prog.className='strat-progress'; prog.textContent = 'Step ' + (i+1) + ' of ' + strat.length;
+  const q = document.createElement('div'); q.className='strat-q'; q.textContent = step.prompt;
+  block.appendChild(prog); block.appendChild(q);
+  step.options.forEach((opt, oi) => {
+    const b = document.createElement('button');
+    b.className='strat-opt'; b.textContent = String.fromCharCode(65+oi) + ') ' + opt;
+    b.addEventListener('click', () => {
+      if (block.dataset.answered) return;
+      block.dataset.answered = '1';
+      const correctIdx = (typeof step.correct === 'number') ? step.correct : 0;
+      [...block.querySelectorAll('.strat-opt')].forEach((btn,bi) => {
+        if (bi === correctIdx) btn.classList.add('correct');
+        else if (bi === oi) btn.classList.add('wrong');
+        btn.disabled = true;
+      });
+      const fb = document.createElement('div'); fb.className='strat-fb'; fb.textContent = (oi===correctIdx ? '✓ ' : '↳ ') + (step.why || '');
+      block.appendChild(fb);
+      if (session[currentIdx]) session[currentIdx].stratIdx = i+1;
+      speak((oi===correctIdx ? 'Correct. ' : 'Not the strongest choice. ') + (step.why||''));
+      setTimeout(() => renderStratStep(strat, i+1), 400);
+    });
+    block.appendChild(b);
+  });
+  area.appendChild(block);
+  block.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 $('nextHintBtn').addEventListener('click', () => {
