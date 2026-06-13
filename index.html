@@ -74,6 +74,10 @@
 
   .loading{display:none; margin:22px auto; text-align:center; font-family:var(--mono); color:var(--ink-soft);}
   .loading .dots::after{content:''; animation:dots 1.4s steps(4,end) infinite;}
+  #analyzeThumb{max-height:120px; border-radius:10px; border:1.5px solid var(--line); display:block; margin:0 auto 10px; animation:thumbIn .35s ease;}
+  @keyframes thumbIn{from{opacity:0; transform:scale(.6)}to{opacity:1; transform:scale(1)}}
+  .sel-stage, #selector{transition:opacity .25s ease;}
+  #selector.fade-out{opacity:0;}
   @keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
   .error{display:none; margin:16px 0; background:#FDECEC; border:1.5px solid var(--cross); border-radius:10px; padding:14px 18px; color:#8C1D1D;}
 
@@ -147,6 +151,16 @@
   #stickyQ .sq-label{font-family:var(--mono); font-size:.7rem; color:var(--ink-soft); letter-spacing:.08em; text-transform:uppercase;}
   #stickyTxt{font-family:var(--mono); font-size:.85rem; white-space:pre-wrap;}
   .chiplet{font-family:var(--display); font-weight:600; font-size:.85rem; padding:7px 13px;}
+  .ans-cmp{display:flex; align-items:center; gap:14px; border-radius:10px; padding:12px 15px; margin-bottom:12px;}
+  .ans-cmp.ok{background:#EAF7F0; border:1.5px solid var(--tick);}
+  .ans-cmp.diff{background:var(--card); border:1.5px solid var(--hi-deep);}
+  .ans-col{display:flex; flex-direction:column; gap:3px;}
+  .ans-label{font-family:var(--mono); font-size:.66rem; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft);}
+  .ans-val{font-family:var(--mono); font-size:1.15rem; font-weight:600;}
+  .good-val{color:var(--tick);}
+  .ans-tick{font-family:var(--display); font-weight:800; color:var(--tick); margin-left:auto;}
+  .ans-arrow{font-family:var(--mono); font-size:.8rem; color:var(--ink-soft);}
+  .ans-confirm{font-size:.82rem; color:var(--ink-soft); margin-bottom:10px;}
   .modal-bg{position:fixed; inset:0; z-index:300; background:rgba(20,33,61,.55); display:none; align-items:flex-start; justify-content:center; padding:24px 16px; overflow:auto;}
   .modal-bg.show{display:flex;}
   .guide{background:var(--card); border:1.5px solid var(--ink); border-radius:var(--radius); box-shadow:0 3px 0 var(--ink); max-width:720px; width:100%; padding:30px 32px; margin:auto;}
@@ -197,15 +211,6 @@
 </style>
 </head>
 <body>
-<div class="gate" id="gate" style="display:none">
-  <div class="gate-box">
-    <h2>🔒 AI Study Buddy</h2>
-    <p>Enter the class passcode to come in.</p>
-    <input type="password" id="gateInput" placeholder="Passcode" autocomplete="off">
-    <div class="gate-err" id="gateErr"></div>
-    <button class="primary" id="gateBtn">Enter</button>
-  </div>
-</div>
 <div class="modal-bg" id="helpModal" role="dialog" aria-modal="true" aria-label="What is this and how to get set up">
   <div class="guide">
     <h2>AI Study Buddy — what it is &amp; how to start</h2>
@@ -280,14 +285,13 @@
 <div class="wrap">
   <header>
     <h1><span class="mark">AI Study Buddy</span></h1>
-    <span style="display:flex; gap:8px; align-items:center;">
+    <span style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
       <span class="scorebar">⭐ <b id="pts">0</b> &nbsp; 🔥 <b id="streak">0</b></span>
-      <button class="quiet" id="muteBtn" title="Turn the tutor's voice on or off">🔊</button>
-      <button class="quiet" id="progressBtn" title="My progress — stored only on this device">📈</button>
-      <button class="quiet" id="helpBtn" title="What is this & how to get set up">❓</button>
+      <button class="quiet" id="muteBtn" title="Turn the tutor's spoken voice on or off">🔊 Tutor voice: On</button>
+      <button class="quiet" id="helpBtn" title="What this is and how to get set up">❓ What's this?</button>
     </span>
   </header>
-  <div class="ver" id="verLine">v2.3 beta · published 12 Jun 2026 · web edition</div>
+  <div class="ver" id="verLine">v2.5 beta · published 12 Jun 2026 · web edition</div>
   <p class="sub">Snap a photo of a question, highlight it, and work through it together — any subject, any year level, any school system. Points for every question you finish — streaks for getting them right.</p>
   <p class="ver">🧪 This is a beta — the tutor occasionally makes a mistake, especially with arithmetic or messy handwriting. If an answer looks off, say so in the chat: checking is half the learning.</p>
 
@@ -355,7 +359,7 @@
 
     <div id="setupClosed" style="display:none">
       <span class="setup-summary" id="setupSummary"></span>
-      <button class="quiet" id="setupEditBtn">⚙️ Change setup</button>
+      <button class="quiet" id="setupEditBtn">⚙️ Edit my setup</button>
     </div>
   </div>
 
@@ -403,25 +407,18 @@
     <div class="btn-row">
       <button class="primary" id="tutorSelBtn" disabled>Tutor this question</button>
       <button id="wholePageBtn">Use the whole page</button>
+      <button class="quiet" id="rotateBtn" title="Rotate if the photo came out sideways">↻ Rotate</button>
       <button class="quiet" id="retakeBtn">Retake photo</button>
     </div>
   </div>
 
-  <div class="loading" id="loading">reading the question<span class="dots"></span></div>
+  <div class="loading" id="loading">
+    <img id="analyzeThumb" alt="The question being reviewed" style="display:none">
+    <div class="loading-text">reviewing the question<span class="dots"></span></div>
+  </div>
   <div class="error" id="errorBox"></div>
 
   <!-- STEP 3: tutoring -->
-  <div class="panel" id="progressPanel" style="display:none">
-    <div class="section-label">📈 My progress — stored only on this device</div>
-    <div id="progressStats"></div>
-    <div class="btn-row" style="justify-content:flex-start">
-      <button class="primary" id="reviewBtn">🧠 Strengths &amp; weaknesses review</button>
-      <button class="quiet" id="clearLogBtn">Clear history</button>
-      <button class="quiet" id="closeProgressBtn">Close</button>
-    </div>
-    <p id="reviewOut" style="white-space:pre-wrap; margin-top:12px;"></p>
-  </div>
-
   <div class="panel" id="sessionBar" style="display:none">
     <div class="section-label">🕘 This session — tap any question to revisit it</div>
     <div id="sessionChips" class="next-row" style="justify-content:flex-start; margin-top:4px"></div>
@@ -448,6 +445,7 @@
         <p id="approach"></p>
       </div>
       <div id="checkBody" style="display:none">
+        <div id="answerRead"></div>
         <span class="verdict" id="verdict"></span>
         <p id="checkSummary"></p>
         <div id="stepReview"></div>
@@ -497,6 +495,16 @@
       <button id="similarBtn">🔁 Similar question to practise</button>
     </div>
   </div>
+
+  <div class="panel" id="progressPanel" style="margin-top:24px;">
+    <div class="section-label">📈 Progress &amp; review — stored only on this device</div>
+    <div id="progressStats"></div>
+    <div class="btn-row" style="justify-content:flex-start">
+      <button class="primary" id="reviewBtn">🧠 Strengths &amp; weaknesses review</button>
+      <button class="quiet" id="clearLogBtn">Clear history</button>
+    </div>
+    <p id="reviewOut" style="white-space:pre-wrap; margin-top:12px;"></p>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 <div id="fxPulse"></div>
@@ -504,26 +512,7 @@
 
 <script>
 /* ================= standalone setup: passcode + API key ================= */
-// Change this passcode before sharing (set to "" to remove the door entirely).
-// Note: this is a deterrent, not real security — the API key below is the actual lock.
-const PASSCODE = "";
-
 const $ = id => document.getElementById(id);
-
-if (PASSCODE && sessionStorage.getItem('sb_gate') !== 'ok'){
-  $('gate').style.display = 'flex';
-  const tryGate = () => {
-    if ($('gateInput').value === PASSCODE){
-      sessionStorage.setItem('sb_gate','ok');
-      $('gate').style.display = 'none';
-    } else {
-      $('gateErr').textContent = "Not quite — ask whoever shared the link for the passcode.";
-      $('gateInput').value = '';
-    }
-  };
-  $('gateBtn').addEventListener('click', tryGate);
-  $('gateInput').addEventListener('keydown', e => { if (e.key==='Enter') tryGate(); });
-}
 
 let apiKey = localStorage.getItem('sb_api_key') || null;
 let provider = localStorage.getItem('sb_provider') || 'anthropic';
@@ -751,6 +740,23 @@ function openSelector(dataUrl){
   $('selector').scrollIntoView({behavior:'smooth', block:'start'});
   speak("Got the page. Drag a box around the question you want.");
 }
+$('rotateBtn').addEventListener('click', () => {
+  if (!pageDataUrl) return;
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas');
+    c.width = img.height; c.height = img.width;       // swap dims for 90° turn
+    const ctx = c.getContext('2d');
+    ctx.translate(c.width, 0);
+    ctx.rotate(Math.PI/2);                            // clockwise
+    ctx.drawImage(img, 0, 0);
+    pageDataUrl = c.toDataURL('image/png');
+    $('pageImg').src = pageDataUrl;
+    selBox = null; $('selRect').style.display='none'; $('tutorSelBtn').disabled = true;
+  };
+  img.src = pageDataUrl;
+});
+
 const stage = $('selStage');
 function pos(e){
   const r = stage.getBoundingClientRect();
@@ -843,7 +849,7 @@ Accuracy check: arithmetic slips are unacceptable in a tutor. Before responding,
 }
 
 const SOLVE_SHAPE = `{"topic":"short label e.g. Trigonometry","question_readback":"the question read back in full as natural speech","approach":"2-4 sentences on HOW to think about and start it, naming the rule or idea. Do NOT state or strongly imply the final answer.","hints":["gentle nudge","names the exact technique or first step","walks to the brink of the answer without stating it"],"final_answer":"concise final answer","worked_solution":[{"explain":"what this step does and why","working":"the maths"}]}`;
-const CHECK_SHAPE = `{"topic":"short label","question_readback":"the question read back as natural speech","verdict":"correct" or "not_quite" or "no_working","summary":"1-3 sentences. If correct: confirm warmly, note anything done especially well. If not_quite: say roughly where it goes off track WITHOUT giving the correct final answer. If no_working: explain you can see the question but no attempt, ask to retake with the working in the highlighted area.","step_review":[{"working":"the student's step as written","status":"ok" or "issue","comment":"confirm why it's right, or unpack what went wrong and the idea to fix it"}],"correct_answer":"the correct final answer","worked_solution":[{"explain":"...","working":"..."}]}`;
+const CHECK_SHAPE = `{"topic":"short label","question_readback":"the question read back as natural speech","student_answer":"the student's OWN final answer, transcribed exactly as written in the photo (their handwriting). Empty string if no attempt is visible.","verdict":"correct" or "not_quite" or "no_working","summary":"1-3 sentences. If correct: confirm warmly, note anything done especially well. If not_quite: say roughly where it goes off track WITHOUT giving the correct final answer. If no_working: explain you can see the question but no attempt, ask to retake with the working in the highlighted area.","step_review":[{"working":"the student's step as written","status":"ok" or "issue","comment":"confirm why it's right, or unpack what went wrong and the idea to fix it"}],"correct_answer":"the correct final answer","worked_solution":[{"explain":"...","working":"..."}]}`;
 
 function toOpenAIMessages(messages){
   const out = [{ role:'system', content: buildSystem() }];
@@ -898,13 +904,18 @@ async function callAPI(messages){
   return (data.content || []).filter(b => b.type==='text').map(b => b.text).join('\n');
 }
 const parseJSON = t => JSON.parse(t.replace(/```json|```/g,'').trim());
+function escapeHtml(x){ return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 async function startTutoring(){
   if (!imageData) return;
   stopSpeak();
-  $('selector').style.display='none';
+  // smooth transition: shrink the captured page into a thumbnail beside the loader instead of vanishing
+  $('analyzeThumb').src = focusDataUrl || pageDataUrl || '';
+  $('analyzeThumb').style.display = (focusDataUrl || pageDataUrl) ? 'block' : 'none';
+  $('selector').classList.add('fade-out');
+  setTimeout(() => { $('selector').style.display='none'; $('selector').classList.remove('fade-out'); }, 260);
   $('errorBox').style.display='none'; $('results').style.display='none';
-  $('loading').innerHTML = 'reading the question<span class="dots"></span>';
+  setLoading(mode==='check' ? 'reviewing your answer' : 'reviewing the question');
   $('loading').style.display='block';
   thinkingOn();
   const prompt = mode==='check'
@@ -962,6 +973,27 @@ function renderResults(isPractice, restore){
     if (coaching.verdict === 'correct'){ v.className='verdict good'; v.textContent='✓ Correct — nice work'; }
     else if (coaching.verdict === 'no_working'){ v.className='verdict bad'; v.textContent='Can\u2019t see your working'; }
     else { v.className='verdict bad'; v.textContent='Not quite — let\u2019s unpack it'; }
+    // show what the tutor read as the student's answer, so they can confirm the handwriting was read right
+    const ar = $('answerRead'); ar.innerHTML='';
+    const sa = (coaching.student_answer || '').trim();
+    if (sa){
+      const correct = coaching.verdict === 'correct';
+      if (correct){
+        const box = document.createElement('div');
+        box.className = 'ans-cmp ok';
+        box.innerHTML = '<span class="ans-label">Your answer</span><span class="ans-val">' + escapeHtml(sa) + '</span><span class="ans-tick">✓ correct</span>';
+        ar.appendChild(box);
+      } else {
+        const wrap = document.createElement('div'); wrap.className='ans-cmp diff';
+        wrap.innerHTML =
+          '<div class="ans-col"><span class="ans-label">Your answer</span><span class="ans-val">' + escapeHtml(sa) + '</span></div>' +
+          '<div class="ans-arrow">vs</div>' +
+          '<div class="ans-col"><span class="ans-label">Correct answer</span><span class="ans-val good-val">' + escapeHtml(coaching.correct_answer||'—') + '</span></div>';
+        ar.appendChild(wrap);
+        const note = document.createElement('p'); note.className='ans-confirm'; note.textContent = 'Is "' + sa + '" what you actually wrote? If the tutor misread your handwriting, retake the photo a bit clearer.';
+        ar.appendChild(note);
+      }
+    }
     $('checkSummary').textContent = coaching.summary || '';
     const sr = $('stepReview'); sr.innerHTML='';
     (coaching.step_review||[]).forEach(s => {
@@ -1134,7 +1166,8 @@ $('similarBtn').addEventListener('click', async () => {
   stopSpeak();
   $('similarBtn').disabled=true;
   $('similarBtn').textContent = '⏳ Writing a similar question…';
-  $('loading').innerHTML = 'cooking up a similar question<span class="dots"></span>';
+  setLoading('cooking up a similar question');
+  $('analyzeThumb').style.display='none';
   $('loading').style.display='block';
   $('loading').scrollIntoView({behavior:'smooth', block:'center'});
   thinkingOn();
@@ -1160,6 +1193,11 @@ function goNewPhoto(){
   $('cameraPanel').style.display='block';
   startCamera();
   window.scrollTo({top:0, behavior:'smooth'});
+}
+function setLoading(msg){
+  let tx = $('loading').querySelector('.loading-text');
+  if (!tx){ tx = document.createElement('div'); tx.className='loading-text'; $('loading').appendChild(tx); }
+  tx.innerHTML = msg + '<span class="dots"></span>';
 }
 function showError(msg){ $('errorBox').textContent=msg; $('errorBox').style.display='block'; $('loading').style.display='none'; }
 
@@ -1208,6 +1246,7 @@ function logPerf(rec){
     while (a.length > 500) a.shift();
     localStorage.setItem('sb_log', JSON.stringify(a));
   }catch(e){}
+  if (document.getElementById('progressStats')) renderStats();
 }
 function renderStats(){
   const log = getLog(), box = $('progressStats');
@@ -1241,12 +1280,7 @@ document.addEventListener('click', e => { if (e.target && e.target.id === 'setup
 $('helpCloseBtn').addEventListener('click', () => $('helpModal').classList.remove('show'));
 $('helpModal').addEventListener('click', e => { if (e.target === $('helpModal')) $('helpModal').classList.remove('show'); });
 
-$('progressBtn').addEventListener('click', () => {
-  const p = $('progressPanel');
-  if (p.style.display === 'none'){ renderStats(); $('reviewOut').textContent=''; p.style.display='block'; p.scrollIntoView({behavior:'smooth'}); }
-  else p.style.display = 'none';
-});
-$('closeProgressBtn').addEventListener('click', () => $('progressPanel').style.display='none');
+renderStats();   // progress lives at the bottom of the page, always visible
 $('clearLogBtn').addEventListener('click', () => {
   if (confirm('Clear the locally stored question history on this device?')){ localStorage.removeItem('sb_log'); renderStats(); }
 });
@@ -1299,12 +1333,18 @@ function rebuildVoiceOptions(){
 function populateVoices(){
   if (!('speechSynthesis' in window)) return;
   const all = speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('en'));
-  if (!all.length) return;
+  if (!all.length) return;            // not ready yet; onvoiceschanged or the retry below will catch it
   const rank = v => (v.lang==='en-AU' ? 0 : 2) - (/premium|enhanced|siri/i.test(v.name) ? 1 : 0);
   voiceList = all.sort((a,b) => rank(a)-rank(b) || a.name.localeCompare(b.name));
   rebuildVoiceOptions();
 }
-if ('speechSynthesis' in window){ speechSynthesis.onvoiceschanged = populateVoices; populateVoices(); }
+if ('speechSynthesis' in window){
+  speechSynthesis.onvoiceschanged = populateVoices;
+  populateVoices();
+  // some browsers never fire onvoiceschanged — poll briefly until the list arrives
+  let tries = 0;
+  const vt = setInterval(() => { populateVoices(); if (voiceList.length || ++tries > 20) clearInterval(vt); }, 250);
+}
 
 async function loadElVoices(){
   if (!elKey) return;
@@ -1346,7 +1386,7 @@ $('testVoiceBtn').addEventListener('click', () => {
 });
 $('muteBtn').addEventListener('click', () => {
   muted = !muted;
-  $('muteBtn').textContent = muted ? '🔇' : '🔊';
+  $('muteBtn').textContent = muted ? '🔇 Tutor voice: Off' : '🔊 Tutor voice: On';
   if (muted) stopSpeak();
 });
 
@@ -1382,13 +1422,19 @@ function speak(text){
   const spoken = speechText(text);
   if (selVal.startsWith('el:') && elKey){
     elSpeak(spoken, selVal.slice(3), rate);
-  } else if ('speechSynthesis' in window){
-    const u = new SpeechSynthesisUtterance(spoken);
-    const v = selVal.startsWith('sys:') ? voiceList[+selVal.slice(4)] : voiceList[0];
-    if (v) u.voice = v;
-    u.rate = rate;
-    speechSynthesis.speak(u);
+    return;
   }
+  if (!('speechSynthesis' in window)) return;
+  // make sure the voice list is loaded (handles the race where speak fires before voices arrive)
+  if (!voiceList.length) populateVoices();
+  const u = new SpeechSynthesisUtterance(spoken);
+  let v = null;
+  if (selVal.startsWith('sys:')) v = voiceList[+selVal.slice(4)];
+  if (!v) v = voiceList[0] || null;   // fall back to best-ranked; if still none, browser default voice is used
+  if (v) u.voice = v;
+  u.rate = rate;
+  u.lang = (v && v.lang) || 'en-AU';
+  speechSynthesis.speak(u);
 }
 async function elSpeak(text, voiceId, rate){
   try{
