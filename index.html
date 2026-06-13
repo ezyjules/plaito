@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en-AU">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FX22ML2BE7"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FX22ML2BE7');
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plaito — the AI tutor that guides you to the answer</title>
@@ -41,10 +49,11 @@
   .scorebar b{font-size:1.05rem;}
   .sub{color:var(--ink-soft); max-width:64ch; margin-bottom:18px; font-size:.95rem;}
   .ver{font-family:var(--mono); font-size:.68rem; color:var(--ink-soft); opacity:.75; margin:-2px 0 8px; letter-spacing:.04em;}
-  .tagline{font-family:var(--display); font-weight:800; font-size:1.12rem; line-height:1.4; margin:2px 0 8px;}
+  .tagline{font-family:var(--display); font-weight:800; font-size:1.12rem; line-height:1.4; margin:4px 0 0;}
   .creed{color:var(--ink); font-size:.98rem; line-height:1.5; margin:0 0 10px; max-width:46ch;}
   .sub-compact{color:var(--ink-soft); font-size:.9rem; margin-bottom:16px;}
   .beta-tag{display:inline-block; font-size:.8rem; opacity:.85;}
+  .fb-inline{font-size:.8rem; color:var(--ink-soft); text-decoration:underline;}
 
   /* SECONDARY (default): outline, no fill — supporting actions */
   button{
@@ -231,6 +240,11 @@
   }
   .profile-chip{display:inline-block; font-family:var(--body); font-weight:700; background:var(--mode-active); border:1.5px solid var(--hi-deep); border-radius:999px; padding:8px 16px; margin-right:10px;}
   .remember-row{display:flex; align-items:center; gap:7px; font-size:.85rem; color:var(--ink-soft); margin-top:10px;}
+  .key-status{font-size:.85rem; font-weight:700; margin:8px 0 0;}
+  .key-status.ok{color:var(--tick);}
+  .key-status.bad{color:var(--cross);}
+  .fb-btn{display:inline-block; font-family:var(--display); font-weight:600; font-size:.92rem; border:1.5px solid var(--ink); border-radius:10px; background:var(--hi); color:var(--ink); padding:11px 18px; text-decoration:none; box-shadow:0 2px 0 var(--ink);}
+  .fb-btn:hover{box-shadow:0 3px 0 var(--ink); transform:translateY(-1px);}
   .key-note{font-size:.82rem; color:var(--ink-soft); margin-top:10px;}
   .key-note a{color:var(--ink-soft);}
 
@@ -270,7 +284,23 @@
   #audioDock{position:fixed; right:14px; bottom:16px; z-index:160; display:flex; gap:6px; background:var(--card); border:1.5px solid var(--ink); border-radius:999px; padding:6px 8px; box-shadow:0 2px 0 var(--ink);}
   #audioDock button{border:none; background:transparent; box-shadow:none; font-size:1.15rem; padding:6px 8px; border-radius:50%;}
   #audioDock button:hover{background:var(--mode-active); transform:none;}
-  #fxPulse{position:fixed; inset:0; pointer-events:none; z-index:150; opacity:0;}
+  #fbTab{position:fixed; left:14px; bottom:16px; z-index:160; font-family:var(--display); font-weight:700; font-size:.85rem; border:1.5px solid var(--ink); background:var(--card); color:var(--ink); border-radius:999px; padding:9px 15px; box-shadow:0 2px 0 var(--ink); cursor:pointer;}
+  #fbTab:hover{transform:translateY(-1px); box-shadow:0 3px 0 var(--ink);}
+  #fbPanel{position:fixed; left:14px; bottom:16px; z-index:170; width:min(330px, calc(100vw - 28px)); background:var(--card); border:1.5px solid var(--ink); border-radius:16px; box-shadow:0 8px 0 rgba(0,0,0,.08), 0 2px 0 var(--ink); padding:16px;}
+  .fb-head{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:12px;}
+  .fb-title{font-family:var(--display); font-weight:800; font-size:1.02rem;}
+  .fb-sub{font-size:.8rem; color:var(--ink-soft); margin-top:2px;}
+  .fb-x{border:none; background:transparent; box-shadow:none; font-size:1rem; cursor:pointer; color:var(--ink-soft); padding:2px 6px;}
+  .fb-x:hover{transform:none; background:var(--mode-active); border-radius:6px;}
+  .fb-label{display:block; font-size:.8rem; font-weight:700; color:var(--ink-soft); margin:10px 0 5px;}
+  .fb-stars{display:flex; gap:4px;}
+  .fb-stars button{border:none; background:transparent; box-shadow:none; font-size:1.7rem; line-height:1; color:var(--line); cursor:pointer; padding:0 2px;}
+  .fb-stars button:hover{transform:none;}
+  .fb-stars button.lit{color:var(--hi-deep);}
+  #fbPanel select, #fbPanel textarea{width:100%; font-family:var(--body); font-size:.9rem; padding:9px 11px; border:1.5px solid var(--line); border-radius:9px; background:var(--card); color:var(--ink);}
+  #fbPanel textarea{resize:vertical;}
+  .fb-actions{display:flex; gap:8px; margin-top:14px;}
+  .fb-note{font-size:.72rem; color:var(--ink-soft); margin:10px 0 0;}
   #fxPulse.go{animation:pulseFx .85s cubic-bezier(.2,.8,.2,1);}
   @keyframes pulseFx{0%{opacity:0; transform:scale(1.04)}22%{opacity:.85}45%{opacity:.5}100%{opacity:0; transform:scale(1)}}
   #fxPulse.big-go{animation:pulseBig 1.15s cubic-bezier(.2,.8,.2,1);}
@@ -364,6 +394,12 @@
       <li>If an answer looks wrong, tell the tutor in the chat — it'll recheck, and that's half the learning.</li>
     </ul>
 
+    <h3>Tell us what you think</h3>
+    <p>Plaito is in beta and we'd love your feedback — what's working, what's confusing, what you wish it did. It helps shape what comes next.</p>
+    <div class="modal-actions" style="justify-content:flex-start; margin-bottom:18px;">
+      <button class="fb-btn" type="button" onclick="$('helpModal').classList.remove('show'); openFeedback();">✉️ Open the feedback form</button>
+    </div>
+
     <div class="modal-actions">
       <button class="primary" onclick="window.print()">🖨️ Print these instructions</button>
       <button class="quiet" id="helpCloseBtn">Close</button>
@@ -379,11 +415,11 @@
       <button class="quiet" id="helpBtn" title="What Plaito is">❓ About</button>
     </span>
   </header>
+  <p class="tagline">The patient, methodical, wise AI tutor. Any age, any subject.</p>
   <div class="scoreboard-row">
     <span class="scorebar">⭐ <b id="pts">0</b> &nbsp; 🔥 <b id="streak">0</b></span>
   </div>
-  <div class="ver" id="verLine">v3.15 beta · published 13 Jun 2026 · web edition</div>
-  <p class="tagline">The relentless, patient AI tutor — for any age, any subject.</p>
+  <div class="ver" id="verLine">v3.19 beta · published 13 Jun 2026 · web edition</div>
   <p class="creed">Understanding isn't given, it's guided. Plaito walks you through the thinking, never just the answer.</p>
   <p class="sub-compact">Snap a question, highlight it, and work through it together. <span class="beta-tag">🧪 Beta — double-check the tutor's arithmetic.</span></p>
 
@@ -425,6 +461,7 @@
         <div class="key-row">
           <input type="password" id="apiKeyInput" placeholder="sk-ant-…" autocomplete="off" aria-label="API key">
         </div>
+        <p class="key-status" id="keyStatus" style="display:none"></p>
         <label class="remember-row"><input type="checkbox" id="rememberKey" checked> Remember on this device (don't tick on shared computers)</label>
         <p class="key-note" id="keyNote">Claude keys: <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> → API Keys. ChatGPT keys: <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">platform.openai.com</a> → API keys. The key stays in this browser, is only ever sent to that provider, and stays saved here until you clear browsing data.</p>
       </div>
@@ -463,7 +500,7 @@
 
   <!-- STEP 1: get the question in -->
   <div class="panel" id="cameraPanel">
-    <div class="section-label">📸 Show me the question</div>
+    <div class="section-label">📸 Show me the question. I'll show you the way.</div>
     <p class="capture-intro">Share a test paper, exam, homework, practice question, or your own working-out — snap a photo or upload an image, and we'll work through it together. You can highlight a single question next.</p>
     <div class="capture-choices">
       <button class="cap-box" id="uploadBtn">
@@ -611,6 +648,43 @@
 <div id="audioDock" style="display:none">
   <button class="quiet" id="dockToggle" title="Pause / resume the tutor's voice" aria-label="Pause or resume">⏸</button>
 </div>
+<button id="fbTab" onclick="openFeedback()" aria-label="Give feedback">💬 Feedback</button>
+<div id="fbPanel" role="dialog" aria-modal="true" aria-label="Send feedback" style="display:none">
+  <div class="fb-head">
+    <div>
+      <div class="fb-title">We're in beta. Always learning.</div>
+      <div class="fb-sub">Your feedback is welcome — it shapes what comes next.</div>
+    </div>
+    <button class="fb-x" onclick="closeFeedback()" aria-label="Close feedback">✕</button>
+  </div>
+
+  <label class="fb-label">How's Plaito working for you?</label>
+  <div class="fb-stars" id="fbStars" role="radiogroup" aria-label="Overall rating">
+    <button type="button" data-v="1" aria-label="1 star">★</button>
+    <button type="button" data-v="2" aria-label="2 stars">★</button>
+    <button type="button" data-v="3" aria-label="3 stars">★</button>
+    <button type="button" data-v="4" aria-label="4 stars">★</button>
+    <button type="button" data-v="5" aria-label="5 stars">★</button>
+  </div>
+
+  <label class="fb-label" for="fbWho">Who's using it?</label>
+  <select id="fbWho">
+    <option value="">Choose…</option>
+    <option>A student</option>
+    <option>A parent</option>
+    <option>A teacher / tutor</option>
+    <option>Just exploring</option>
+  </select>
+
+  <label class="fb-label" for="fbText">What's on your mind?</label>
+  <textarea id="fbText" rows="4" placeholder="What's working, what's confusing, what you wish it did…"></textarea>
+
+  <div class="fb-actions">
+    <button class="primary" type="button" id="fbSend">Send feedback</button>
+    <button class="quiet" type="button" onclick="closeFeedback()">Cancel</button>
+  </div>
+  <p class="fb-note">Opens your email to send to hello@plaito.study. Nothing is sent automatically.</p>
+</div>
 <div id="fxPulse"></div>
 <div id="fxGlow"><span class="e-top"></span><span class="e-right"></span><span class="e-bottom"></span><span class="e-left"></span></div>
 <div id="fxBeam"></div>
@@ -651,6 +725,22 @@ function updateKeyPlaceholder(){
 }
 document.querySelectorAll('input[name=provider]').forEach(r => r.addEventListener('change', updateKeyPlaceholder));
 
+function checkKeyLive(){
+  const chosen = document.querySelector('input[name=provider]:checked')?.value || 'anthropic';
+  const v = $('apiKeyInput').value.trim();
+  const st = $('keyStatus');
+  if (!v){
+    if (apiKey && chosen===provider){ st.style.display='block'; st.className='key-status ok'; st.textContent='✓ '+(provider==='openai'?'ChatGPT':'Claude')+' key already connected on this device'; }
+    else { st.style.display='none'; }
+    return;
+  }
+  st.style.display='block';
+  const okPrefix = chosen==='anthropic' ? v.startsWith('sk-ant-') : v.startsWith('sk-');
+  if (okPrefix){ st.className='key-status ok'; st.textContent='✓ Looks like a valid '+(chosen==='openai'?'ChatGPT':'Claude')+' key — tap Done to connect it'; }
+  else { st.className='key-status bad'; st.textContent="That doesn't look like a "+(chosen==='openai'?'ChatGPT (sk-…)':'Claude (sk-ant-…)')+' key'; }
+}
+$('apiKeyInput').addEventListener('input', checkKeyLive);
+document.querySelectorAll('input[name=provider]').forEach(r=>r.addEventListener('change', () => { updateKeyPlaceholder(); checkKeyLive(); }));
 $('setupDoneBtn').addEventListener('click', () => {
   const chosen = document.querySelector('input[name=provider]:checked')?.value || 'anthropic';
   const typed = $('apiKeyInput').value.trim();
@@ -793,7 +883,10 @@ async function startCamera(deviceId){
     $('camStage').style.display='flex';
     $('camVideo').style.display='none';
     $('camOff').style.display='block';
-    $('camOff').textContent = "Camera permission was blocked. Click the camera icon in the address bar (or System Settings → Privacy & Security → Camera) to allow it, then try a camera option again. Or just use Upload above.";
+    const insecure = location.protocol !== 'https:' && location.hostname !== 'localhost';
+    $('camOff').textContent = insecure
+      ? "The camera only works on a secure (https) connection. This page is on http right now, so the browser blocks it with no prompt. Once the site is on https the camera will work — for now, please use Upload above."
+      : "Camera permission was blocked or dismissed. Click the camera icon in the address bar (or System Settings → Privacy & Security → Camera) to allow it, then tap Use Camera again. Or just use Upload above.";
   }
 }
 // This version runs as its own page, so the live camera (incl. iPhone Continuity Camera) works — start it straight away.
@@ -1691,6 +1784,35 @@ $('testVoiceBtn').addEventListener('click', () => {
   speak("G'day! This is how I'll sound when we work through your questions together. The square root of 144 is... well, that would be telling.");
   muted = wasMuted;
 });
+let fbRating = 0;
+function openFeedback(){ document.getElementById('fbTab').style.display='none'; document.getElementById('fbPanel').style.display='block'; }
+function closeFeedback(){ document.getElementById('fbPanel').style.display='none'; document.getElementById('fbTab').style.display='block'; }
+(function wireFeedback(){
+  const stars = document.querySelectorAll('#fbStars button');
+  stars.forEach(b => b.addEventListener('click', () => {
+    fbRating = +b.dataset.v;
+    stars.forEach(s => s.classList.toggle('lit', +s.dataset.v <= fbRating));
+  }));
+  const send = document.getElementById('fbSend');
+  if (send) send.addEventListener('click', () => {
+    const who = document.getElementById('fbWho').value;
+    const txt = document.getElementById('fbText').value.trim();
+    const lines = [
+      'Rating: ' + (fbRating ? fbRating + '/5' : '(not given)'),
+      'Who: ' + (who || '(not given)'),
+      '',
+      'Feedback:',
+      txt || '(none written)',
+      '',
+      '— sent from Plaito ' + (document.getElementById('verLine') ? document.getElementById('verLine').textContent : '')
+    ];
+    const url = 'mailto:hello@plaito.study?subject=' + encodeURIComponent('Plaito feedback' + (fbRating ? ' (' + fbRating + '/5)' : '')) +
+                '&body=' + encodeURIComponent(lines.join('\n'));
+    window.location.href = url;
+    closeFeedback();
+    toast('Thanks — opening your email to send ✓');
+  });
+})();
 function toast(msg){
   const t=$('toast'); if(!t) return;
   t.textContent=msg; t.classList.add('show');
