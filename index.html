@@ -343,7 +343,7 @@
   <div class="scoreboard-row">
     <span class="scorebar">⭐ <b id="pts">0</b> &nbsp; 🔥 <b id="streak">0</b></span>
   </div>
-  <div class="ver" id="verLine">v3.1 beta · published 13 Jun 2026 · web edition</div>
+  <div class="ver" id="verLine">v3.2 beta · published 13 Jun 2026 · web edition</div>
   <p class="sub">Snap a photo of a question, highlight it, and work through it together — any subject, any year level, any school system. Points for every question you finish — streaks for getting them right.</p>
   <p class="ver">🧪 This is a beta — the tutor occasionally makes a mistake, especially with arithmetic or messy handwriting. If an answer looks off, say so in the chat: checking is half the learning.</p>
 
@@ -970,7 +970,7 @@ When the request asks for JSON, respond with ONLY valid JSON — no markdown fen
 
 If the photo shows more than one question, work on the most prominent/complete one and mention which in question_readback.
 
-The "strategy" array teaches the THINKING behind the solution: 3-5 multiple-choice decision points that mirror the worked solution, each with one clearly-best option (its index in "correct", 0-based) and a "why" explaining the reasoning. Make the wrong options plausible-but-weaker so choosing teaches real judgement. Speak prompts and why-text to "you".
+The "strategy" array is REQUIRED and must NEVER be empty — include it in EVERY response that has a worked_solution, in both checking and coaching. It teaches the THINKING behind the solution: 3-5 multiple-choice decision points that mirror the worked solution, each with one clearly-best option (its index in "correct", 0-based) and a "why" explaining the reasoning. Make the wrong options plausible-but-weaker so choosing teaches real judgement. Even when the student already answered correctly, still provide the strategy so they understand WHY their approach worked. Speak prompts and why-text to "you".
 
 Accuracy check: arithmetic slips are unacceptable in a tutor. Before responding, silently recompute every numeric and algebraic step a second, independent way (e.g. substitute a value, or re-add coefficients separately) and confirm the final answer matches the worked solution; fix any discrepancy before you reply.`;
 }
@@ -1252,12 +1252,34 @@ function fillSolution(lead){
 function buildStrategy(){
   const strat = (coaching.strategy || []).filter(s => s && s.prompt && Array.isArray(s.options) && s.options.length);
   const wrap = $('strategyWrap'), area = $('strategyArea');
-  if (!strat.length){ wrap.style.display='none'; return; }
   wrap.style.display='block';
   area.innerHTML='';
+  if (!strat.length){
+    const fb = document.createElement('div'); fb.className='strat-fb';
+    fb.innerHTML = 'No step-by-step strategy came through for this one. <button class="quiet" id="stratRetryBtn">Build the strategy</button>';
+    area.appendChild(fb);
+    $('stratRetryBtn').addEventListener('click', requestStrategy);
+    return;
+  }
   const e = session[currentIdx];
   const startAt = (e && e.stratIdx) ? e.stratIdx : 0;
   renderStratStep(strat, startAt);
+}
+async function requestStrategy(){
+  const btn = $('stratRetryBtn'); if (btn){ btn.disabled=true; btn.textContent='Building…'; }
+  thinkingOn();
+  try{
+    const text = await callAPI(history.concat([{ role:'user', content:
+      'Give ONLY the "strategy" array for this question as JSON: {"strategy":[{"prompt":"...","options":["..."],"correct":0,"why":"..."}]} — 3-5 decision points, one clearly-best option each, addressed to me as "you". No other keys, no prose.' }]));
+    const obj = parseJSON(text);
+    if (obj.strategy && obj.strategy.length){
+      coaching.strategy = obj.strategy;
+      if (session[currentIdx]) session[currentIdx].coaching = coaching;
+      buildStrategy();
+    } else { throw new Error('empty'); }
+  }catch(e){
+    const b=$('stratRetryBtn'); if (b){ b.disabled=false; b.textContent='Try again'; }
+  }finally{ thinkingOff(); }
 }
 function renderStratStep(strat, i){
   const area = $('strategyArea');
