@@ -3,7 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Study Buddy</title>
+<title>AI Study Buddy — the ultimate study companion, by your side</title>
+<meta name="description" content="AI Study Buddy reads a photo of any homework question and works through it with you — checking your answer step by step or coaching you when you're stuck. Any subject, any age. It guides you to the answer instead of just handing it over.">
+<meta name="theme-color" content="#FFD60A">
+<meta property="og:title" content="AI Study Buddy — the ultimate study companion">
+<meta property="og:description" content="Snap a photo of any homework question and work through it together. Any subject, any age — guided to the answer, not just given it.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
   :root{
@@ -77,6 +83,7 @@
   .countdown{position:absolute; inset:0; display:none; align-items:center; justify-content:center; font-family:var(--display); font-weight:800; font-size:6rem; color:var(--hi); background:rgba(11,18,38,.45);}
   .flash{position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; transition:opacity .25s;}
   .btn-row{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:14px; align-items:center;}
+  .capture-intro{color:var(--ink-soft); font-size:.92rem; margin:-2px 0 14px;}
   .capture-choices{display:flex; gap:12px;}
   .cap-box{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:20px 12px; border:1.5px solid var(--ink); border-radius:12px; background:var(--card); box-shadow:0 2px 0 var(--ink); cursor:pointer;}
   .cap-box:hover{transform:translateY(-1px); box-shadow:0 3px 0 var(--ink); background:var(--mode-active);}
@@ -374,7 +381,7 @@
   <div class="scoreboard-row">
     <span class="scorebar">⭐ <b id="pts">0</b> &nbsp; 🔥 <b id="streak">0</b></span>
   </div>
-  <div class="ver" id="verLine">v3.9 beta · published 13 Jun 2026 · web edition</div>
+  <div class="ver" id="verLine">v3.11 beta · published 13 Jun 2026 · web edition</div>
   <p class="tagline">The ultimate study companion. Any age, any subject… by your side.</p>
   <p class="sub-compact">Snap a question, highlight it, and work through it together. <span class="beta-tag">🧪 Beta — double-check the tutor's arithmetic.</span></p>
 
@@ -454,6 +461,8 @@
 
   <!-- STEP 1: get the question in -->
   <div class="panel" id="cameraPanel">
+    <div class="section-label">📸 Show me the question</div>
+    <p class="capture-intro">Share a test paper, exam, homework, practice question, or your own working-out — snap a photo or upload an image, and we'll work through it together. You can highlight a single question next.</p>
     <div class="capture-choices">
       <button class="cap-box" id="uploadBtn">
         <span class="cap-ico">🖼️</span>
