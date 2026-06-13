@@ -154,7 +154,7 @@
   .swatch.active{outline:3px solid var(--hi-deep); outline-offset:2px;}
   #voiceSelect{max-width:190px;}
   #rateSlider{width:84px; accent-color:var(--hi-deep);}
-  .pbar input[type=password]{font-family:var(--mono); font-size:.8rem; padding:7px 10px; border:1.5px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); width:160px;}
+  
   .bubble.typing{color:var(--ink-soft); font-style:italic;}
   .bubble.typing::after{content:''; animation:dots 1.4s steps(4,end) infinite;}
   #fxPulse{position:fixed; inset:0; pointer-events:none; z-index:150; opacity:0;}
@@ -183,7 +183,7 @@
       <button class="quiet" id="muteBtn" title="Turn the tutor's voice on or off">🔊</button>
     </span>
   </header>
-  <div class="ver" id="verLine">v1.9 · published 12 Jun 2026 · web edition</div>
+  <div class="ver" id="verLine">v1.9.1 · published 12 Jun 2026 · web edition</div>
   <p class="sub">Snap a photo of a question, highlight it, and work through it together — any subject, any year level, any school system. Points for every question you finish — streaks for getting them right.</p>
 
   <div class="panel" id="setupPanel">
@@ -225,9 +225,9 @@
           <button class="quiet" id="testVoiceBtn">▶ Test</button>
         </div>
         <p class="key-note">Want a properly human voice? <b>ElevenLabs</b> is a company that makes startlingly natural AI voices. It's optional: sign up free at <a href="https://elevenlabs.io" target="_blank" rel="noopener">elevenlabs.io</a> (the free tier covers ~10 minutes of speech a month), grab your API key from your profile, and paste it here — starred ⭐ voices will join the list above.</p>
-        <div class="p-group">
-          <input type="password" id="elKeyInput" placeholder="ElevenLabs key (optional)" autocomplete="off" aria-label="ElevenLabs API key">
-          <button class="quiet" id="elKeyBtn">Use</button>
+        <div class="key-row">
+          <input type="password" id="elKeyInput" placeholder="sk_…  (optional)" autocomplete="off" aria-label="ElevenLabs API key">
+          <button id="elKeyBtn">Connect voices</button>
         </div>
       </div>
 
@@ -1022,7 +1022,7 @@ async function loadElVoices(){
     if (elVoices.length){
       $('voiceSelect').value = 'el:' + elVoices[0].voice_id;
       $('elKeyInput').value = '';
-      $('elKeyInput').placeholder = '⭐ premium connected';
+      $('elKeyInput').placeholder = '⭐ premium voices connected';
     }
   }catch(e){
     elKey = null; localStorage.removeItem('sb_el_key'); elVoices = []; rebuildVoiceOptions();
