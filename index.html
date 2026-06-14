@@ -50,6 +50,8 @@
   .sub{color:var(--ink-soft); max-width:64ch; margin-bottom:18px; font-size:.95rem;}
   .ver{font-family:var(--mono); font-size:.68rem; color:var(--ink-soft); opacity:.75; margin:-2px 0 8px; letter-spacing:.04em;}
   .tagline{font-family:var(--display); font-weight:800; font-size:1.12rem; line-height:1.4; margin:4px 0 0;}
+  body.working .tagline, body.working .creed, body.working .sub-compact, body.working .scoreboard-row, body.working .ver{display:none;}
+  body.working .seg{margin-top:4px;}
   .creed{color:var(--ink); font-size:.98rem; line-height:1.5; margin:0 0 10px; max-width:62ch;}
   .sub-compact{color:var(--ink-soft); font-size:.9rem; margin-bottom:16px;}
   .beta-tag{display:inline-block; font-size:.8rem; opacity:.85;}
@@ -181,6 +183,7 @@
   #setupPanel .key-row input[type=text]{flex:1; min-width:220px; margin-bottom:0; font-family:var(--body);}
   .setup-step{margin:14px 0 18px;}
   .provider-row{display:flex; gap:18px; margin:8px 0 10px; font-size:.92rem; flex-wrap:wrap;}
+  .provider-note{font-size:.8rem; color:var(--ink-soft); margin:0 0 8px;}
   .provider-row label{display:flex; align-items:center; gap:6px; cursor:pointer;}
   .provider-row input{accent-color:var(--hi-deep);}
   #setupClosed{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
@@ -210,9 +213,9 @@
   #strategyWrap{margin:6px 0 18px; padding:16px; background:var(--mode-active); border:1.5px solid var(--hi-deep); border-radius:12px;}
   #workedWrap{margin-top:18px;}
   #pathChoice{margin:10px 0 4px;}
-  .path-q{font-weight:700; margin:0 0 10px;}
-  .path-btns{display:flex; gap:10px; flex-wrap:wrap;}
-  .path-btns button{flex:1; min-width:180px;}
+  .path-q{font-weight:700; margin:0 0 12px;}
+  .path-skip{display:block; margin:10px auto 0; border:none; background:transparent; box-shadow:none; color:var(--ink-soft); font-size:.85rem; text-decoration:underline; font-weight:600; cursor:pointer; padding:6px;}
+  .path-skip:hover{transform:none; background:transparent; color:var(--ink);}
   .strat-q{font-weight:700; margin:6px 0 10px;}
   .strat-opt{display:block; width:100%; text-align:left; border:1.5px solid var(--line); border-radius:10px; background:var(--card); color:var(--ink); padding:12px 15px; margin:8px 0; cursor:pointer; box-shadow:0 2px 0 var(--line); font-family:var(--body); font-size:.95rem; transition:transform .08s;}
   .strat-opt:hover{transform:translateY(-1px);}
@@ -426,8 +429,8 @@
   <div class="scoreboard-row">
     <span class="scorebar">⭐ <b id="pts">0</b> &nbsp; 🔥 <b id="streak">0</b></span>
   </div>
-  <div class="ver" id="verLine">v4.3 beta · published 13 Jun 2026 · web edition</div>
-  <p class="creed">Understanding isn't given, it's guided. Plaito walks you through the thinking, never just the answer.</p>
+  <div class="ver" id="verLine">v4.7 beta · published 13 Jun 2026 · web edition</div>
+  <p class="creed">Strongest in maths and the sciences, where method matters most — and ready for any subject. Plaito walks you through the thinking, never just the answer.</p>
   <p class="sub-compact">Snap a question, highlight it, and work through it together. <span class="beta-tag">🧪 Beta — double-check the tutor's arithmetic.</span></p>
 
   <div class="panel" id="setupPanel">
@@ -462,9 +465,10 @@
         <span class="p-label">3 · Connect an AI key</span>
         <p class="key-note">The tutoring brain is rented directly from an AI company — that's what the key is for. Think of it like a prepaid SIM card for AI: you load a little credit with Claude or ChatGPT, and each question sips about a cent of it. $5–10 of credit typically lasts a whole school term. No subscription, and you can see exactly what's been spent on the provider's site.</p>
         <div class="provider-row">
-          <label><input type="radio" name="provider" value="anthropic" checked> Claude (Anthropic)</label>
-          <label><input type="radio" name="provider" value="openai"> ChatGPT (OpenAI)</label>
+          <label><input type="radio" name="provider" value="openai" checked> ChatGPT (OpenAI)</label>
+          <label><input type="radio" name="provider" value="anthropic"> Claude (Anthropic)</label>
         </div>
+        <p class="provider-note" id="providerNote">ChatGPT also gives you a good built-in voice from the same key — nothing else to set up.</p>
         <div class="key-row">
           <input type="password" id="apiKeyInput" placeholder="sk-ant-…" autocomplete="off" aria-label="API key">
           <button id="apiKeyBtn">Connect</button>
@@ -613,11 +617,9 @@
       <span class="answer-final" id="finalAnswer"></span>
 
       <div id="pathChoice">
-        <p class="path-q">How would you like to get there?</p>
-        <div class="path-btns">
-          <button class="primary" id="choiceStrategy">🧭 Walk me through the strategy</button>
-          <button id="choiceSolution">📝 Show the worked solution</button>
-        </div>
+        <p class="path-q">Let's work it out together — the tutor's way.</p>
+        <button class="primary big" id="choiceStrategy" style="width:100%">🧭 Walk me through it, step by step</button>
+        <button class="path-skip" id="choiceSolution">or skip straight to the worked answer</button>
       </div>
 
       <div id="strategyWrap" style="display:none">
@@ -716,7 +718,7 @@
 const $ = id => document.getElementById(id);
 
 let apiKey = localStorage.getItem('sb_api_key') || null;
-let provider = localStorage.getItem('sb_provider') || 'anthropic';
+let provider = localStorage.getItem('sb_provider') || 'openai';
 let profile = localStorage.getItem('sb_profile') || '';
 
 function renderSetup(){
@@ -741,8 +743,12 @@ function openSetup(){
   $('setupPanel').scrollIntoView({behavior:'smooth'});
 }
 function updateKeyPlaceholder(){
-  const p = document.querySelector('input[name=provider]:checked')?.value || 'anthropic';
-  $('apiKeyInput').placeholder = apiKey && p === provider ? '✓ key connected — paste a new one to replace' : (p === 'openai' ? 'sk-…' : 'sk-ant-…');
+  const pv = document.querySelector('input[name=provider]:checked')?.value || 'openai';
+  $('apiKeyInput').placeholder = apiKey && pv === provider ? '✓ key connected — paste a new one to replace' : (pv === 'openai' ? 'sk-…' : 'sk-ant-…');
+  const note = document.getElementById('providerNote');
+  if (note) note.textContent = (pv === 'openai')
+    ? 'ChatGPT also gives you a good built-in voice from the same key — nothing else to set up.'
+    : 'Claude is text-only, so for a spoken voice you\'ll add a separate provider (e.g. ElevenLabs) in the voice step — or use your device\'s built-in voice.';
 }
 document.querySelectorAll('input[name=provider]').forEach(r => r.addEventListener('change', updateKeyPlaceholder));
 
@@ -776,6 +782,11 @@ function connectKey(){
   updateKeyPlaceholder();
   st.style.display='block'; st.className='key-status ok';
   st.textContent = '✓ ' + (provider==='openai'?'ChatGPT':'Claude') + ' key connected on this device';
+  rebuildVoiceOptions();
+  if (provider==='openai'){
+    const sel=$('voiceSelect'); if (sel && !sel.value.startsWith('el:')) sel.value='oai:nova';
+    st.textContent += ' — great voices now available, no extra setup';
+  }
   toast((provider==='openai'?'ChatGPT':'Claude') + ' key connected ✓');
 }
 $('apiKeyBtn').addEventListener('click', connectKey);
@@ -989,7 +1000,8 @@ function openSelector(dataUrl){
   $('cameraPanel').style.display='none';         // get the big capture UI out of the way
   $('selector').style.display='block';
   $('results').style.display='none';
-  $('selector').scrollIntoView({behavior:'smooth', block:'start'});
+  document.body.classList.add('working');
+  window.scrollTo({top:0, behavior:'smooth'});
   speak("Got the page. Drag a box around the question you want.");
 }
 $('rotateBtn').addEventListener('click', () => {
@@ -1044,6 +1056,7 @@ function drawSel(){
 $('retakeBtn').addEventListener('click', () => {
   $('selector').style.display='none';
   $('cameraPanel').style.display='block';
+  document.body.classList.remove('working');
   startCamera();
   window.scrollTo({top:0, behavior:'smooth'});
 });
@@ -1161,13 +1174,17 @@ When the request asks for JSON, respond with ONLY valid JSON — no markdown fen
 
 If the photo shows more than one question, work on the most prominent/complete one and mention which in question_readback.
 
-The "strategy" array is REQUIRED and must NEVER be empty — include it in EVERY response that has a worked_solution, in both checking and coaching. It teaches the THINKING behind the solution: 3-5 multiple-choice decision points that mirror the worked solution, each with one clearly-best option (its index in "correct", 0-based) and a "why" explaining the reasoning. Make the wrong options plausible-but-weaker so choosing teaches real judgement. Even when the student already answered correctly, still provide the strategy so they understand WHY their approach worked. Speak prompts and why-text to "you".
+The "strategy" array is REQUIRED and must NEVER be empty — include it in EVERY response that has a worked_solution, in both checking and coaching. It teaches the THINKING behind the solution: 3-5 multiple-choice decision points that mirror the worked solution. Each decision has EXACTLY THREE options, structured deliberately:
+  1) the genuinely correct move,
+  2) a plausible, tempting wrong turn — the mistake a reasonable student might actually make (THIS is the teaching one; the "why" should address its misconception),
+  3) a clearly-wrong-but-REAL move — an actual mistake students genuinely make at this step (e.g. converting surds to decimals when asked to "simplify completely", adding when they should multiply, forgetting to apply the rule). More obviously off than option 2, but still a real error pattern worth naming — NOT a joke, NOT nonsense. Think of it as a ladder of wrongness: one right, one subtly tempting, one a recognisable real slip.
+Every option must teach: even the most-wrong one names a genuine misconception, so explaining why it fails has value. NEVER make the three subtle near-variations of each other (that feels like a trap), and NEVER make one a deliberate joke or absurd nonsense — keep them all real moves a student might actually choose. Light humour can come through naturally in your TONE when explaining, but don't engineer a "silly" option. "correct" is the 0-based index of the right one (vary its position; don't always put it first). The "why" explains why the right move is smart and why each wrong one falls short. Keep options short enough to read aloud. Even when the student already answered correctly, still provide the strategy so they understand WHY their approach worked. Speak prompts and why-text to "you".
 
 Accuracy check: arithmetic slips are unacceptable in a tutor. Before responding, silently recompute every numeric and algebraic step a second, independent way (e.g. substitute a value, or re-add coefficients separately) and confirm the final answer matches the worked solution; fix any discrepancy before you reply.`;
 }
 
-const SOLVE_SHAPE = `{"topic":"short label e.g. Trigonometry","question_readback":"the question read back in full as natural speech","approach":"2-4 sentences addressed to you (\"start by…\", \"you\u2019ll want to…\") on HOW to think about and start it, naming the rule or idea. Do NOT state or strongly imply the final answer.","hints":["gentle nudge","names the exact technique or first step","walks to the brink of the answer without stating it"],"final_answer":"concise final answer","worked_solution":[{"explain":"what this step does and why, spoken to you as \"you\"","working":"the maths"}],"strategy":[{"prompt":"a decision the student faces at this step, asked to you e.g. \"What\u2019s your first move?\"","options":["3-4 plausible next moves, only ONE clearly best"],"correct":0,"why":"why the correct option is the smart strategic choice, and briefly why the others are weaker"}]}`;
-const CHECK_SHAPE = `{"topic":"short label","question_readback":"the question read back as natural speech","student_answer":"the student's OWN final answer, transcribed exactly as written in the photo (their handwriting). Empty string if no attempt is visible.","verdict":"correct" or "not_quite" or "no_working","summary":"1-3 sentences addressed to you as \"you\", in the warm encouraging tutor voice. If correct: open with specific genuine praise for what you did well, then confirm. If not_quite: FIRST name something you genuinely got right (setup, method, early steps), THEN say roughly where it goes off track WITHOUT giving the correct final answer, framed as a small fixable slip. If no_working: warmly note you can see the question but no attempt yet, and invite a retake with your working in the highlighted area.","step_review":[{"working":"the student's step as written","status":"ok" or "issue","comment":"addressed to you in second person: confirm why your step is right, or unpack what went wrong and the idea to fix it"}],"correct_answer":"the correct final answer","worked_solution":[{"explain":"...","working":"..."}],"strategy":[{"prompt":"a decision faced at this step, asked to you e.g. \"What\u2019s the first move?\"","options":["3-4 plausible moves, only ONE clearly best"],"correct":0,"why":"why the correct option is the smart choice and why the others are weaker"}]}`;
+const SOLVE_SHAPE = `{"topic":"short label e.g. Trigonometry","question_readback":"the question read back in full as natural speech","approach":"2-4 sentences addressed to you (\"start by…\", \"you\u2019ll want to…\") on HOW to think about and start it, naming the rule or idea. Do NOT state or strongly imply the final answer.","hints":["gentle nudge","names the exact technique or first step","walks to the brink of the answer without stating it"],"final_answer":"concise final answer","worked_solution":[{"explain":"what this step does and why, spoken to you as \"you\"","working":"the maths"}],"strategy":[{"prompt":"a decision you face at this step, asked to you e.g. \"What\u2019s your first move?\"","options":["EXACTLY three real moves: the right one, a subtly tempting wrong turn, and a clearly-wrong-but-genuine student mistake (order varied; none absurd or joky)"],"correct":0,"why":"why the right move is smart, and why each wrong one falls short"}]}`;
+const CHECK_SHAPE = `{"topic":"short label","question_readback":"the question read back as natural speech","student_answer":"the student's OWN final answer, transcribed exactly as written in the photo (their handwriting). Empty string if no attempt is visible.","verdict":"correct" or "not_quite" or "no_working","summary":"1-3 sentences addressed to you as \"you\", in the warm encouraging tutor voice. If correct: open with specific genuine praise for what you did well, then confirm. If not_quite: FIRST name something you genuinely got right (setup, method, early steps), THEN say roughly where it goes off track WITHOUT giving the correct final answer, framed as a small fixable slip. If no_working: warmly note you can see the question but no attempt yet, and invite a retake with your working in the highlighted area.","step_review":[{"working":"the student's step as written","status":"ok" or "issue","comment":"addressed to you in second person: confirm why your step is right, or unpack what went wrong and the idea to fix it"}],"correct_answer":"the correct final answer","worked_solution":[{"explain":"...","working":"..."}],"strategy":[{"prompt":"a decision you face at this step, asked to you e.g. \"What\u2019s the first move?\"","options":["EXACTLY three real moves: the right one, a subtly tempting wrong turn, and a clearly-wrong-but-genuine student mistake (order varied; none absurd or joky)"],"correct":0,"why":"why the right move is smart, and why each wrong one falls short"}]}`;
 
 function toOpenAIMessages(messages){
   const out = [{ role:'system', content: buildSystem() }];
@@ -1396,6 +1413,7 @@ function renderResults(isPractice, restore){
 
   sectionText.main = mainSpeech;
   $('results').style.display='block';
+  document.body.classList.add('working');
   if (!restore){
     $('results').scrollIntoView({behavior:'smooth'});
     speak(mainSpeech);
@@ -1667,6 +1685,7 @@ function goNewPhoto(){
   pageDataUrl = null; imageData = null; coaching = null; history = [];
   $('selector').style.display='none'; $('results').style.display='none';
   $('cameraPanel').style.display='block';
+  document.body.classList.remove('working');
   startCamera();
   window.scrollTo({top:0, behavior:'smooth'});
 }
@@ -1796,10 +1815,19 @@ $('stickyQ').addEventListener('click', () => $('stickyQ').classList.toggle('big'
 let voiceList = [], muted = false, currentAudio = null, lastSpoken = '', audioState = 'idle';
 let elKey = localStorage.getItem('sb_el_key') || null, elVoices = [];
 
+const OAI_VOICES = ['alloy','echo','fable','onyx','nova','shimmer'];
 function rebuildVoiceOptions(){
   const sel = $('voiceSelect');
   const prev = sel.value;
   sel.innerHTML = '';
+  // OpenAI voices — available off the SAME key used for tutoring, no extra setup
+  if (provider === 'openai' && apiKey){
+    OAI_VOICES.forEach(name => {
+      const o = document.createElement('option');
+      o.value = 'oai:' + name; o.textContent = '🔊 ' + name.charAt(0).toUpperCase()+name.slice(1) + ' (OpenAI)';
+      sel.appendChild(o);
+    });
+  }
   elVoices.forEach(v => {
     const o = document.createElement('option');
     o.value = 'el:' + v.voice_id; o.textContent = '⭐ ' + v.name;
@@ -1954,6 +1982,10 @@ function speak(text){
   const rate = parseFloat($('rateSlider').value) || 1;
   const spoken = speechText(text);
   audioState = 'playing'; setDock();
+  if (selVal.startsWith('oai:') && provider==='openai' && apiKey){
+    oaiSpeak(spoken, selVal.slice(4), rate);
+    return;
+  }
   if (selVal.startsWith('el:') && elKey){
     elSpeak(spoken, selVal.slice(3), rate);
     return;
@@ -1993,6 +2025,27 @@ function pauseResume(){
     if (currentAudio){ currentAudio.play(); }
     else if ('speechSynthesis' in window){ speechSynthesis.resume(); }
     audioState = 'playing'; setDock();
+  }
+}
+async function oaiSpeak(text, voice, rate){
+  try{
+    const r = await fetch('https://api.openai.com/v1/audio/speech', {
+      method:'POST',
+      headers:{ 'Authorization': 'Bearer ' + apiKey, 'Content-Type':'application/json' },
+      body: JSON.stringify({ model:'tts-1', voice: voice, input: text.slice(0, 3500) })
+    });
+    if (!r.ok) throw new Error('oai tts failed');
+    const blob = await r.blob();
+    currentAudio = new Audio(URL.createObjectURL(blob));
+    currentAudio.playbackRate = rate;
+    currentAudio.onended = () => { audioState='idle'; setDock(); };
+    currentAudio.play();
+  }catch(e){
+    if ('speechSynthesis' in window){
+      const u = new SpeechSynthesisUtterance(text);
+      if (voiceList[0]) u.voice = voiceList[0];
+      u.rate = rate; speechSynthesis.speak(u);
+    } else { audioState='idle'; setDock(); }
   }
 }
 async function elSpeak(text, voiceId, rate){
