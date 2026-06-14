@@ -50,8 +50,8 @@
   .sub{color:var(--ink-soft); max-width:64ch; margin-bottom:18px; font-size:.95rem;}
   .ver{font-family:var(--mono); font-size:.68rem; color:var(--ink-soft); opacity:.75; margin:-2px 0 8px; letter-spacing:.04em;}
   .tagline{font-family:var(--display); font-weight:800; font-size:1.12rem; line-height:1.4; margin:4px 0 0;}
-  body.working .tagline, body.working .creed, body.working .sub-compact, body.working .scoreboard-row, body.working .ver, body.working #setupPanel{display:none;}
-  body.working .seg{margin-top:4px;}
+  body.in-question .tagline, body.in-question .creed, body.in-question .sub-compact, body.in-question .scoreboard-row, body.in-question .ver, body.in-question #setupPanel{display:none;}
+  body.in-question .seg{margin-top:4px;}
   .creed{color:var(--ink); font-size:.98rem; line-height:1.5; margin:0 0 10px; max-width:62ch;}
   .sub-compact{color:var(--ink-soft); font-size:.9rem; margin-bottom:16px;}
   .beta-tag{display:inline-block; font-size:.8rem; opacity:.85;}
@@ -431,7 +431,7 @@
   <div class="scoreboard-row">
     <span class="scorebar">⭐ <b id="pts">0</b> &nbsp; 🔥 <b id="streak">0</b></span>
   </div>
-  <div class="ver" id="verLine">v4.10 beta · published 13 Jun 2026 · web edition</div>
+  <div class="ver" id="verLine">v4.11 beta · published 13 Jun 2026 · web edition</div>
   <p class="creed">Strongest in maths and the sciences, where method matters most — and ready for any subject. Plaito walks you through the thinking, never just the answer.</p>
   <p class="sub-compact">Snap a question, highlight it, and work through it together. <span class="beta-tag">🧪 Beta — double-check the tutor's arithmetic.</span></p>
 
@@ -1005,7 +1005,7 @@ function openSelector(dataUrl){
   $('cameraPanel').style.display='none';         // get the big capture UI out of the way
   $('selector').style.display='block';
   $('results').style.display='none';
-  document.body.classList.add('working');
+  document.body.classList.add('in-question');
   window.scrollTo({top:0, behavior:'smooth'});
   speak("Got the page. Drag a box around the question you want.");
 }
@@ -1061,7 +1061,7 @@ function drawSel(){
 $('retakeBtn').addEventListener('click', () => {
   $('selector').style.display='none';
   $('cameraPanel').style.display='block';
-  document.body.classList.remove('working');
+  document.body.classList.remove('in-question');
   startCamera();
   window.scrollTo({top:0, behavior:'smooth'});
 });
@@ -1418,7 +1418,7 @@ function renderResults(isPractice, restore){
 
   sectionText.main = mainSpeech;
   $('results').style.display='block';
-  document.body.classList.add('working');
+  document.body.classList.add('in-question');
   if (!restore){
     $('results').scrollIntoView({behavior:'smooth'});
     speak(mainSpeech);
@@ -1691,7 +1691,7 @@ function goNewPhoto(){
   pageDataUrl = null; imageData = null; coaching = null; history = [];
   $('selector').style.display='none'; $('results').style.display='none';
   $('cameraPanel').style.display='block';
-  document.body.classList.remove('working');
+  document.body.classList.remove('in-question');
   startCamera();
   window.scrollTo({top:0, behavior:'smooth'});
 }
