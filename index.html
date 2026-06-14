@@ -312,6 +312,19 @@
   @keyframes runBottom{0%{background-position:160% 0}100%{background-position:-60% 0}}
   @keyframes runLeft{0%{background-position:0 160%}100%{background-position:0 -60%}}
   #fxBeam{display:none;}
+  #confetti{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:300; display:none;}
+  #winBadge{position:fixed; top:38%; left:50%; transform:translate(-50%,-50%) scale(.4); z-index:301; pointer-events:none; opacity:0;}
+  #winBadge span{display:inline-block; font-family:var(--display); font-weight:800; font-size:clamp(2rem,7vw,3.4rem); color:#fff; background:var(--tick); padding:14px 30px; border-radius:18px; border:3px solid var(--ink); box-shadow:0 8px 0 var(--ink), 0 14px 34px rgba(47,158,110,.5); white-space:nowrap;}
+  #winBadge.go{animation:winPop 1.5s cubic-bezier(.18,.9,.3,1.2) forwards;}
+  @keyframes winPop{
+    0%{opacity:0; transform:translate(-50%,-50%) scale(.4) rotate(-8deg);}
+    14%{opacity:1; transform:translate(-50%,-50%) scale(1.12) rotate(3deg);}
+    26%{transform:translate(-50%,-50%) scale(.97) rotate(-2deg);}
+    36%{transform:translate(-50%,-50%) scale(1.03) rotate(1deg);}
+    46%{transform:translate(-50%,-50%) scale(1) rotate(0deg);}
+    82%{opacity:1; transform:translate(-50%,-50%) scale(1) rotate(0deg);}
+    100%{opacity:0; transform:translate(-50%,-54%) scale(.96) rotate(0deg);}
+  }
 
   /* celebration: bold full-screen flash that phases in then out */
   #audioDock{position:fixed; right:14px; bottom:16px; z-index:160; display:flex; align-items:center; gap:6px;}
@@ -337,7 +350,7 @@
   #fxPulse.go{animation:pulseFx .85s cubic-bezier(.2,.8,.2,1);}
   @keyframes pulseFx{0%{opacity:0; transform:scale(1.04)}22%{opacity:.85}45%{opacity:.5}100%{opacity:0; transform:scale(1)}}
   #fxPulse.big-go{animation:pulseBig 1.15s cubic-bezier(.2,.8,.2,1);}
-  @keyframes pulseBig{0%{opacity:0}15%{opacity:.92}40%{opacity:.55}70%{opacity:.7}100%{opacity:0}}
+  @keyframes pulseBig{0%{opacity:0}10%{opacity:1}30%{opacity:.5}50%{opacity:.75}70%{opacity:.4}100%{opacity:0}}
   /* a quick celebratory ring that expands from centre */
   #fxRing{position:fixed; top:50%; left:50%; width:40px; height:40px; border-radius:50%; z-index:152; opacity:0; pointer-events:none; transform:translate(-50%,-50%);}
   #fxRing.go{animation:ringPop .8s ease-out;}
@@ -445,7 +458,7 @@
     <a href="#" class="brand-lockup" id="brandHome" aria-label="Plaito home">
       <span class="mark">Plaito</span>
       <span class="brand-tagline">The patient, methodical, wise AI tutor. Any age, any subject.</span>
-      <span class="ver" id="verLine">v4.23 beta · pub 13 Jun 26 <span id="tokenReadout" class="tok"></span></span>
+      <span class="ver" id="verLine">v4.25 beta · pub 13 Jun 26 <span id="tokenReadout" class="tok"></span></span>
     </a>
     <nav class="head-tools">
       <button class="quiet" id="helpBtn" title="What Plaito is">About</button>
@@ -770,6 +783,8 @@
   </div>
   <p class="fb-note">Opens your email to send to hello@plaito.study. Nothing is sent automatically.</p>
 </div>
+<canvas id="confetti"></canvas>
+<div id="winBadge"><span>✓ Correct!</span></div>
 <div id="fxPulse"></div>
 <div id="fxGlow"><span class="e-top"></span><span class="e-right"></span><span class="e-bottom"></span><span class="e-left"></span></div>
 <div id="fxBeam"></div>
@@ -798,6 +813,7 @@ let apiKey = keys[provider] || null;   // the ACTIVE key (downstream code uses t
 let elKey = localStorage.getItem('sb_el_key') || null, elVoices = [];
 let voiceList = [], muted = false, currentAudio = null, lastSpoken = '', audioState = 'idle', speechGen = 0;
 let lastTokens = null;   // {in, out, total} for the most recent API call — surfaced as a tiny dev readout
+let wasCorrect = false;  // did the student get THIS question right? (changes the lock-in flow + tone)
 function setActiveProvider(pv){
   provider = pv;
   apiKey = keys[pv] || null;
@@ -969,7 +985,67 @@ function celebrate(big){
     w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake');
     const v = document.getElementById('verdict');
     if (v){ v.classList.remove('pop'); void v.offsetWidth; v.classList.add('pop'); }
+    const badge = document.getElementById('winBadge');
+    if (badge){ badge.classList.remove('go'); void badge.offsetWidth; badge.classList.add('go'); }
+    fireConfetti();
   }
+}
+
+let confettiRAF = null;
+function fireConfetti(){
+  const canvas = document.getElementById('confetti');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = innerWidth * DPR; canvas.height = innerHeight * DPR;
+  canvas.style.display = 'block';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  const colors = ['#FFD60A','#2F9E6E','#2B86C5','#FF3CAC','#784BA0','#E0B400','#ffffff'];
+  const N = 150;
+  const parts = [];
+  // two side cannons + a centre fountain for a fuller burst
+  for (let i=0;i<N;i++){
+    const side = i % 3;
+    const originX = side===0 ? innerWidth*0.12 : side===1 ? innerWidth*0.88 : innerWidth*0.5;
+    const originY = side===2 ? innerHeight*0.32 : innerHeight*0.62;
+    const ang = side===0 ? (-Math.PI/3 - Math.random()*0.5)
+              : side===1 ? (-2*Math.PI/3 + Math.random()*0.5)
+              : (-Math.PI/2 + (Math.random()-0.5)*1.1);
+    const speed = 9 + Math.random()*9;
+    parts.push({
+      x:originX, y:originY,
+      vx:Math.cos(ang)*speed, vy:Math.sin(ang)*speed,
+      size:5 + Math.random()*7,
+      color:colors[(Math.random()*colors.length)|0],
+      rot:Math.random()*6.28, vrot:(Math.random()-0.5)*0.4,
+      shape:Math.random()<0.5?'rect':'circ',
+      life:0, ttl:90 + Math.random()*50
+    });
+  }
+  const gravity = 0.32, drag = 0.992;
+  if (confettiRAF) cancelAnimationFrame(confettiRAF);
+  function frame(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    let alive = 0;
+    for (const p of parts){
+      if (p.life > p.ttl) continue;
+      alive++;
+      p.life++;
+      p.vx *= drag; p.vy = p.vy*drag + gravity;
+      p.x += p.vx; p.y += p.vy; p.rot += p.vrot;
+      const fade = Math.max(0, 1 - p.life/p.ttl);
+      ctx.save();
+      ctx.globalAlpha = fade;
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      if (p.shape==='rect') ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+      else { ctx.beginPath(); ctx.arc(0,0,p.size/2,0,6.28); ctx.fill(); }
+      ctx.restore();
+    }
+    if (alive > 0){ confettiRAF = requestAnimationFrame(frame); }
+    else { ctx.clearRect(0,0,innerWidth,innerHeight); canvas.style.display='none'; confettiRAF=null; }
+  }
+  frame();
 }
 function award(points, msg, bumpStreak){
   pts += points;
@@ -1490,6 +1566,7 @@ function renderResults(isPractice, restore){
     mainSpeech += coaching.summary || '';
     (coaching.step_review||[]).forEach((s,i)=>{ mainSpeech += ' Step '+(i+1)+': '+(s.status==='ok'?'good. ':'needs a look. ')+(s.comment||''); });
     $('finalAnswer').textContent = coaching.correct_answer || '';
+    wasCorrect = (coaching.verdict === 'correct');
     if (coaching.verdict === 'correct'){
       answerRevealed = true; scored = true;
       $('vault').style.display='none';
@@ -1581,14 +1658,30 @@ function resetPathChoice(){
   $('strategyWrap').style.display='none';
   $('workedWrap').style.display='none';
   if ($('afterStrategyRow')) $('afterStrategyRow').style.display='none';
+  // tailor the prompt + buttons to whether they got it right
+  const q = document.querySelector('.path-q');
+  const strat = $('choiceStrategy'), skip = $('choiceSolution');
+  if (wasCorrect){
+    if (q) q.textContent = 'Well done — you got there. Want to run through why it works, to lock it in?';
+    if (strat) strat.textContent = '🧭 Lock it in — run through the thinking';
+    if (skip) skip.textContent = 'or just see the worked answer';
+  } else {
+    if (q) q.textContent = "Let's work it out together — the tutor's way.";
+    if (strat) strat.textContent = '🧭 Walk me through it, step by step';
+    if (skip) skip.textContent = 'or skip straight to the worked answer';
+  }
 }
 function showStrategyPath(){
   $('pathChoice').style.display='none';
   $('workedWrap').style.display='none';
   $('strategyWrap').style.display='block';
   buildStrategy();
-  // spoken lead-in, then the first question is read by renderStratStep
-  speak("Let's work out the strategy together. " + (strategyHasSteps() ? "Here's your first decision." : ""));
+  // spoken lead-in — confirmation tone if they were right, teaching tone otherwise
+  if (wasCorrect){
+    speak("Great work getting this right. Let's run through the thinking so it really sticks. " + (strategyHasSteps() ? "First decision." : ""));
+  } else {
+    speak("Let's work out the strategy together. " + (strategyHasSteps() ? "Here's your first decision." : ""));
+  }
   $('strategyWrap').scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 function showSolutionPath(){
@@ -1667,7 +1760,10 @@ function renderStratStep(strat, i){
       const fb = document.createElement('div'); fb.className='strat-fb'; fb.textContent = (oi===correctIdx ? '✓ ' : '↳ ') + (step.why || '');
       block.appendChild(fb);
       if (session[currentIdx]) session[currentIdx].stratIdx = i+1;
-      speak((oi===correctIdx ? 'Correct. ' : 'Not the strongest choice. ') + (step.why||''));
+      const lead = oi===correctIdx
+        ? (wasCorrect ? 'Exactly — that\'s the move you spotted. ' : 'Correct. ')
+        : (wasCorrect ? 'Worth a look — the stronger move here is the other one. ' : 'Not the strongest choice. ');
+      speak(lead + (step.why||''));
       setTimeout(() => renderStratStep(strat, i+1), 400);
     });
     block.appendChild(b);
@@ -1689,6 +1785,7 @@ $('nextHintBtn').addEventListener('click', () => {
 });
 
 function doReveal(){
+  wasCorrect = false;   // solve-mode reveal isn't a "you got it right" moment
   answerRevealed = true;
   $('vault').style.display='none';
   $('answerBlock').style.display='block';
