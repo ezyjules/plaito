@@ -496,7 +496,7 @@
       </nav>
     </div>
     <div class="brand-tagline">The patient, methodical, wise AI tutor. Any age, any subject.</div>
-    <span class="ver" id="verLine">v5.21 beta · pub 14 Jun 26 <span id="tokenReadout" class="tok"></span></span>
+    <span class="ver" id="verLine">v5.23 beta · pub 14 Jun 26 <span id="tokenReadout" class="tok"></span></span>
     <span id="pts" hidden>0</span><span id="streak" hidden>0</span>
   </header>
   <div class="header-copy" id="headerCopy">
@@ -822,35 +822,55 @@
 /* ================= standalone setup: passcode + API key ================= */
 const $ = id => document.getElementById(id);
 
-let provider = localStorage.getItem('sb_provider') || 'openai';
+/* Safe storage: some contexts (iOS home-screen apps, private mode, locked-down browsers)
+   throw when touching store. Wrap it so a failure can NEVER halt the whole script. */
+const store = (function(){
+  let backing = null;
+  try {
+    const t = '__plaito_test__';
+    window.localStorage.setItem(t, '1');
+    window.localStorage.removeItem(t);
+    backing = window.localStorage;          // real storage works
+  } catch(e){
+    backing = null;                         // blocked — use in-memory fallback below
+  }
+  const mem = {};
+  return {
+    getItem(k){ try { return backing ? backing.getItem(k) : (k in mem ? mem[k] : null); } catch(e){ return (k in mem ? mem[k] : null); } },
+    setItem(k,v){ try { if (backing) backing.setItem(k, v); else mem[k] = String(v); } catch(e){ mem[k] = String(v); } },
+    removeItem(k){ try { if (backing) backing.removeItem(k); else delete mem[k]; } catch(e){ delete mem[k]; } }
+  };
+})();
+
+let provider = store.getItem('sb_provider') || 'openai';
 // dual-key store: each provider keeps its own key, the radio picks which is active
 let keys = {
-  openai: localStorage.getItem('sb_openai_key') || null,
-  anthropic: localStorage.getItem('sb_anthropic_key') || null
+  openai: store.getItem('sb_openai_key') || null,
+  anthropic: store.getItem('sb_anthropic_key') || null
 };
 // migrate the old single-slot key (sb_api_key) into the right provider slot
 (function migrateKey(){
-  const old = localStorage.getItem('sb_api_key');
+  const old = store.getItem('sb_api_key');
   if (old && !keys[provider]){
     keys[provider] = old;
-    localStorage.setItem(provider==='openai'?'sb_openai_key':'sb_anthropic_key', old);
+    store.setItem(provider==='openai'?'sb_openai_key':'sb_anthropic_key', old);
   }
-  localStorage.removeItem('sb_api_key');
+  store.removeItem('sb_api_key');
 })();
 let apiKey = keys[provider] || null;   // the ACTIVE key (downstream code uses this)
-let elKey = localStorage.getItem('sb_el_key') || null, elVoices = [];
+let elKey = store.getItem('sb_el_key') || null, elVoices = [];
 let voiceList = [], muted = false, currentAudio = null, lastSpoken = '', audioState = 'idle', speechGen = 0;
 let lastTokens = null;   // {in, out, total} for the most recent API call — surfaced as a tiny dev readout
 let wasCorrect = false;  // did the student get THIS question right? (changes the lock-in flow + tone)
 function setActiveProvider(pv){
   provider = pv;
   apiKey = keys[pv] || null;
-  localStorage.setItem('sb_provider', provider);
+  store.setItem('sb_provider', provider);
 }
-let profile = localStorage.getItem('sb_profile') || '';
+let profile = store.getItem('sb_profile') || '';
 
 function renderSetup(){
-  const done = localStorage.getItem('sb_setup_done') === '1' && !!apiKey;
+  const done = store.getItem('sb_setup_done') === '1' && !!apiKey;
   $('setupOpen').style.display = done ? 'none' : 'block';
   $('setupClosed').style.display = done ? 'flex' : 'none';
   $('setupPanel').classList.toggle('closed', done);
@@ -871,7 +891,7 @@ function renderSetup(){
 }
 function openSetup(){
   document.body.classList.remove('in-question');   // leave working mode so the expanded panel shows
-  localStorage.removeItem('sb_setup_done');
+  store.removeItem('sb_setup_done');
   renderSetup();
   $('setupPanel').scrollIntoView({behavior:'smooth'});
 }
@@ -937,8 +957,8 @@ function connectKey(){
   if (chosen === 'anthropic' && !v.startsWith('sk-ant-')){ st.style.display='block'; st.className='key-status bad'; st.textContent="That doesn't look like a Claude key (sk-ant-…)."; return; }
   if (chosen === 'openai' && !v.startsWith('sk-')){ st.style.display='block'; st.className='key-status bad'; st.textContent="That doesn't look like a ChatGPT key (sk-…)."; return; }
   keys[chosen] = v;
-  if ($('rememberKey').checked) localStorage.setItem(chosen==='openai'?'sb_openai_key':'sb_anthropic_key', v);
-  else localStorage.removeItem(chosen==='openai'?'sb_openai_key':'sb_anthropic_key');
+  if ($('rememberKey').checked) store.setItem(chosen==='openai'?'sb_openai_key':'sb_anthropic_key', v);
+  else store.removeItem(chosen==='openai'?'sb_openai_key':'sb_anthropic_key');
   setActiveProvider(chosen);
   $('apiKeyInput').value = '';
   updateKeyPlaceholder();
@@ -988,17 +1008,17 @@ $('setupDoneBtn').addEventListener('click', () => {
     if (chosen === 'anthropic' && !typed.startsWith('sk-ant-')){ alert("A Claude key starts with sk-ant- — that looks like something else."); return; }
     if (chosen === 'openai' && !typed.startsWith('sk-')){ alert("An OpenAI key starts with sk- — that looks like something else."); return; }
     keys[chosen] = typed;
-    if ($('rememberKey').checked) localStorage.setItem(chosen==='openai'?'sb_openai_key':'sb_anthropic_key', typed);
-    else localStorage.removeItem(chosen==='openai'?'sb_openai_key':'sb_anthropic_key');
+    if ($('rememberKey').checked) store.setItem(chosen==='openai'?'sb_openai_key':'sb_anthropic_key', typed);
+    else store.removeItem(chosen==='openai'?'sb_openai_key':'sb_anthropic_key');
   } else if (!keys[chosen]){
     alert("To finish setup, paste an API key — either ChatGPT (OpenAI) or Claude (Anthropic).");
     return;
   }
   setActiveProvider(chosen);
   profile = $('profileInput').value.trim();
-  localStorage.setItem('sb_profile', profile);
+  store.setItem('sb_profile', profile);
   $('apiKeyInput').value = '';
-  localStorage.setItem('sb_setup_done', '1');
+  store.setItem('sb_setup_done', '1');
   renderSetup();
   toast((provider==='openai'?'ChatGPT':'Claude') + ' key connected ✓');
 });
@@ -1465,7 +1485,7 @@ async function callAPI(messages){
     const data = await response.json();
     if (data.error){
       if (/api key|auth/i.test(data.error.message || '')){
-        keys[provider]=null; localStorage.removeItem(provider==='openai'?'sb_openai_key':'sb_anthropic_key'); apiKey=null; openSetup();
+        keys[provider]=null; store.removeItem(provider==='openai'?'sb_openai_key':'sb_anthropic_key'); apiKey=null; openSetup();
         throw new Error("that OpenAI key was rejected — re-enter it in setup");
       }
       throw new Error(data.error.message || 'API error');
@@ -1486,7 +1506,7 @@ async function callAPI(messages){
   const data = await response.json();
   if (data.error){
     if (/authentication|invalid x-api-key/i.test(data.error.message || '')){
-      keys[provider]=null; localStorage.removeItem(provider==='openai'?'sb_openai_key':'sb_anthropic_key'); apiKey=null; openSetup();
+      keys[provider]=null; store.removeItem(provider==='openai'?'sb_openai_key':'sb_anthropic_key'); apiKey=null; openSetup();
       throw new Error("that Claude key was rejected — re-enter it in setup");
     }
     throw new Error(data.error.message || 'API error');
@@ -1922,7 +1942,7 @@ $('askInput').addEventListener('keydown', e => { if (e.key==='Enter') askTutor()
 
 function saveProfileNow(){
   profile = $('profileInput').value.trim();
-  localStorage.setItem('sb_profile', profile);
+  store.setItem('sb_profile', profile);
   const st = $('profileStatus');
   if (st){
     st.style.display = 'block';
@@ -2038,13 +2058,13 @@ function restoreEntry(i){
 }
 
 /* ================= local performance memory ================= */
-function getLog(){ try{ return JSON.parse(localStorage.getItem('sb_log') || '[]'); }catch(e){ return []; } }
+function getLog(){ try{ return JSON.parse(store.getItem('sb_log') || '[]'); }catch(e){ return []; } }
 function logPerf(rec){
   try{
     const a = getLog();
     a.push(rec);
     while (a.length > 500) a.shift();
-    localStorage.setItem('sb_log', JSON.stringify(a));
+    store.setItem('sb_log', JSON.stringify(a));
   }catch(e){}
   if (document.getElementById('progressStats')) renderStats();
 }
@@ -2088,7 +2108,7 @@ function openProgress(){
   pan.style.display='block'; renderStats(); pan.scrollIntoView({behavior:'smooth'});
 }
 $('clearLogBtn').addEventListener('click', () => {
-  if (confirm('Clear the locally stored question history on this device?')){ localStorage.removeItem('sb_log'); renderStats(); }
+  if (confirm('Clear the locally stored question history on this device?')){ store.removeItem('sb_log'); renderStats(); }
 });
 $('reviewBtn').addEventListener('click', async () => {
   const log = getLog();
@@ -2147,6 +2167,15 @@ function rebuildVoiceOptions(){
   addGroup('💻 Your device\'s built-in voices', voiceList.map((v,i) => ({
     value: 'sys:' + i, text: v.name + ' (' + v.lang + ')'
   })));
+  if (!sel.options.length){
+    const o = document.createElement('option');
+    o.value = ''; o.disabled = true; o.selected = true;
+    const oaiReady = (provider === 'openai' && apiKey);
+    o.textContent = oaiReady
+      ? 'Loading voices…'
+      : 'No voices yet — connect ChatGPT for instant voices, or add ElevenLabs';
+    sel.appendChild(o);
+  }
   if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
 }
 function populateVoices(){
@@ -2176,7 +2205,7 @@ async function loadElVoices(){
     return;
   }
   if (!r.ok){
-    elKey = null; localStorage.removeItem('sb_el_key'); elVoices = []; rebuildVoiceOptions();
+    elKey = null; store.removeItem('sb_el_key'); elVoices = []; rebuildVoiceOptions();
     $('elKeyInput').placeholder = 'sk_…  (optional)';
     alert('ElevenLabs rejected that key (' + r.status + "). Create a key at elevenlabs.io → API Keys with Text-to-Speech and Voices (read) permissions — or leave it unrestricted — then paste the new one here.");
     return;
@@ -2193,7 +2222,7 @@ async function loadElVoices(){
 $('elKeyBtn').addEventListener('click', () => {
   const k = $('elKeyInput').value.trim();
   if (!k) return;
-  elKey = k; localStorage.setItem('sb_el_key', k);
+  elKey = k; store.setItem('sb_el_key', k);
   loadElVoices();
 });
 if (elKey){ $('elKeyInput').placeholder = '⭐ premium voices connected (remembered)'; loadElVoices(); }
@@ -2415,10 +2444,10 @@ function applyTheme(name){
   const t = THEMES[name]; if (!t) return;
   for (const k in t) document.documentElement.style.setProperty(k, t[k]);
   document.querySelectorAll('.swatch').forEach(s => s.classList.toggle('active', s.dataset.theme === name));
-  try{ localStorage.setItem('sb_theme', name); }catch(e){}
+  try{ store.setItem('sb_theme', name); }catch(e){}
 }
 document.querySelectorAll('.swatch').forEach(s => s.addEventListener('click', () => applyTheme(s.dataset.theme)));
-applyTheme(localStorage.getItem('sb_theme') || 'graph');
+applyTheme(store.getItem('sb_theme') || 'graph');
 </script>
 </body>
 </html>
