@@ -500,7 +500,7 @@
   <div class="wiz-card">
     <div class="wiz-head">
       <span class="wiz-mark">PLAITO</span>
-      <span class="wiz-ver" id="wizVer">v5.54 beta</span>
+      <span class="wiz-ver" id="wizVer">v5.55 beta</span>
       <div class="wiz-prog" id="wizProg"></div>
     </div>
     <div class="wiz-body">
@@ -716,7 +716,7 @@
       </nav>
     </div>
     <div class="brand-tagline">The patient, methodical, wise AI tutor. Any age, any subject.</div>
-    <span class="ver" id="verLine">v5.54 beta · pub 18 Jun 26 <span id="tokenReadout" class="tok"></span></span>
+    <span class="ver" id="verLine">v5.55 beta · pub 18 Jun 26 <span id="tokenReadout" class="tok"></span></span>
     <span id="pts" hidden>0</span><span id="streak" hidden>0</span>
   </header>
   <div class="header-copy" id="headerCopy">
@@ -2810,7 +2810,7 @@ applyTheme(store.getItem('sb_theme') || 'graph');
     m.steps.forEach(function(t){ var li=document.createElement('li'); li.innerHTML=t; ol.appendChild(li); });
     $w('wizElKey').placeholder = m.ph;
     $w('wizPremiumOpen').href = m.url;
-    var st=$w('wizElStatus'); if (st){ st.style.display='none'; st.className=''; }
+    // NOTE: don't clear the status here — renderVoice() calls this on refresh and would wipe a success message.
   }
 
   function wizElStatus(kind, msg){
@@ -2969,13 +2969,32 @@ applyTheme(store.getItem('sb_theme') || 'graph');
 
   // ---- wire events ----
   W.querySelectorAll('.wchoice').forEach(function(c){ c.addEventListener('click', function(){ pickProvider(c.dataset.wprov); }); });
-  W.querySelectorAll('.wprem-tab').forEach(function(t){ t.addEventListener('click', function(){ pickVoiceProvider(t.dataset.wvp); }); });
+  W.querySelectorAll('.wprem-tab').forEach(function(t){ t.addEventListener('click', function(){
+    var st=$w('wizElStatus'); if (st){ st.style.display='none'; st.className=''; }  // clear stale status on a real tab switch
+    pickVoiceProvider(t.dataset.wvp);
+  }); });
   $w('wizElConnect').addEventListener('click', connectWizVoiceKey);
   $w('wizElKey').addEventListener('keydown', function(e){ if (e.key==='Enter'){ e.preventDefault(); connectWizVoiceKey(); } });
   $w('wizKeyInput').addEventListener('input', checkKey);
   $w('wizBack').addEventListener('click', function(){ go(-1); });
   $w('wizNext').addEventListener('click', function(){ go(1); });
   $w('wizTestVoice').addEventListener('click', function(){
+    // mirror the wizard's chosen voice into the REAL dropdown, then use the app's proven speak()
+    // — this routes el: / oai: / sys: voices correctly (incl. ElevenLabs playback via its API)
+    var chosen = $w('wizVoiceSelect').value || '';
+    try{
+      var real = document.getElementById('voiceSelect');
+      if (real && chosen){
+        // make sure the chosen option exists in the real dropdown (rebuildVoiceOptions adds el:/oai: there too)
+        if (typeof rebuildVoiceOptions==='function') rebuildVoiceOptions();
+        real.value = chosen;
+      }
+      if (typeof speak === 'function'){
+        speak("G'day! This is how I'll sound when we work through your questions together.");
+        return;
+      }
+    }catch(e){}
+    // fallback only if the real speak() isn't available
     try{ if (window.speechSynthesis){ var u=new SpeechSynthesisUtterance("Hi! I'm Plaito. Let's work through it together."); speechSynthesis.speak(u); } }catch(e){}
   });
 
