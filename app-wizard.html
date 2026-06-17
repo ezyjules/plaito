@@ -475,6 +475,7 @@
   .wiz-foot{display:flex; justify-content:space-between; align-items:center; padding:16px 22px; border-top:1.5px solid var(--line); background:rgba(0,0,0,.015);}
   .wbtn{font-family:var(--display); font-weight:700; font-size:.95rem; border-radius:10px; padding:10px 20px; cursor:pointer; border:1.5px solid var(--ink); transition:transform .08s, box-shadow .08s;}
   .wbtn-next{background:var(--hi); color:var(--ink); box-shadow:0 3px 0 var(--ink);}
+  .wbtn-next:disabled{background:var(--line); color:var(--ink-soft); border-color:var(--line); box-shadow:none; cursor:not-allowed; transform:none;}
   .wbtn-next:hover{transform:translateY(-1px); box-shadow:0 4px 0 var(--ink);}
   .wbtn-back{background:transparent; color:var(--ink-soft); border-color:var(--line);}
   .wbtn-back:disabled{opacity:.4; cursor:default;}
@@ -2776,7 +2777,15 @@ applyTheme(store.getItem('sb_theme') || 'graph');
   function checkKey(){
     var v=$w('wizKeyInput').value.trim();
     var ok = (wprov==='anthropic' && v.indexOf('sk-ant-')===0) || (wprov==='openai' && v.indexOf('sk-')===0 && v.indexOf('sk-ant-')!==0);
-    $w('wizKeyOk').classList.toggle('show', ok && v.length>12);
+    var valid = ok && v.length>12;
+    $w('wizKeyOk').classList.toggle('show', valid);
+    // the key is mandatory — block Next on the key step until a validly-formatted key is present
+    if (cur===2) setNextEnabled(valid);
+    return valid;
+  }
+
+  function setNextEnabled(on){
+    $w('wizNext').disabled = !on;
   }
   function pickVoiceProvider(vp){
     wvp = vp;
@@ -2826,7 +2835,8 @@ applyTheme(store.getItem('sb_theme') || 'graph');
     W.querySelectorAll('.wiz-step').forEach(function(st){ st.classList.toggle('active', +st.dataset.w===cur); });
     $w('wizBack').disabled = (cur===0);
     $w('wizNext').textContent = (cur===TOTAL-1) ? "Let's start class \u2192" : 'Next \u2192';
-    if (cur===2) renderHowto();
+    if (cur===2){ renderHowto(); checkKey(); }   // arriving at key step: gate Next on key validity
+    else setNextEnabled(true);                    // every other step: Next always allowed
     if (cur===4) renderVoice();
     buildProg();
     // fire a per-step event the first time each step is reached (drop-off funnel)
@@ -2877,6 +2887,8 @@ applyTheme(store.getItem('sb_theme') || 'graph');
   }
 
   function go(d){
+    // hard guard: cannot advance past the key step without a valid key
+    if (d>0 && cur===2 && !checkKey()){ return; }
     if (d>0 && cur===TOTAL-1){ finish(); return; }
     cur = Math.max(0, Math.min(TOTAL-1, cur+d));
     show();
