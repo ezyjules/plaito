@@ -473,6 +473,12 @@
   .wprem-tab .wtabnote{display:block; font-family:var(--mono); font-size:.58rem; font-weight:400; letter-spacing:.03em; margin-top:2px;}
   .wprem-tab.active{border-color:var(--ink); color:var(--ink); background:rgba(224,180,0,.10); box-shadow:0 2px 0 var(--hi-deep);}
 
+  .wvoice-keyrow{display:flex; gap:10px; align-items:stretch;}
+  .wvoice-keyrow .wkey{flex:1;}
+  #wizElStatus{font-size:.86rem; font-weight:700; margin-top:10px; padding:9px 12px; border-radius:9px; display:none;}
+  #wizElStatus.ok{display:block; color:var(--tick); background:rgba(47,158,110,.08); border:1.5px solid var(--tick);}
+  #wizElStatus.bad{display:block; color:var(--cross); background:rgba(214,69,69,.07); border:1.5px solid var(--cross);}
+  #wizElStatus.working{display:block; color:var(--ink-soft); background:rgba(0,0,0,.03); border:1.5px solid var(--line);}
   .wiz-foot{display:flex; justify-content:space-between; align-items:center; padding:16px 22px; border-top:1.5px solid var(--line); background:rgba(0,0,0,.015);}
   .wbtn{font-family:var(--display); font-weight:700; font-size:.95rem; border-radius:10px; padding:10px 20px; cursor:pointer; border:1.5px solid var(--ink); transition:transform .08s, box-shadow .08s;}
   .wbtn-next{background:var(--hi); color:var(--ink); box-shadow:0 3px 0 var(--ink);}
@@ -494,7 +500,7 @@
   <div class="wiz-card">
     <div class="wiz-head">
       <span class="wiz-mark">PLAITO</span>
-      <span class="wiz-ver" id="wizVer">v5.51 beta</span>
+      <span class="wiz-ver" id="wizVer">v5.52 beta</span>
       <div class="wiz-prog" id="wizProg"></div>
     </div>
     <div class="wiz-body">
@@ -585,7 +591,11 @@
             <ol class="whowto" id="wizPremiumHowto"></ol>
             <a class="wopenbtn" id="wizPremiumOpen" href="#" target="_blank" rel="noopener">Open the voice key page in a new tab ↗</a>
             <div class="wlabel">Paste your voice key here</div>
-            <input class="wkey" id="wizElKey" placeholder="Paste your voice key…" autocomplete="off">
+            <div class="wvoice-keyrow">
+              <input class="wkey" id="wizElKey" placeholder="Paste your voice key…" autocomplete="off">
+              <button class="wplaybtn" id="wizElConnect" type="button">Connect</button>
+            </div>
+            <div class="wkeyok" id="wizElStatus"></div>
             <div class="wnote wnote-priv" style="margin-top:10px">🔒 <b>Keep this key to yourself too</b> — like the first one, it's private.</div>
           </div>
         </details>
@@ -706,7 +716,7 @@
       </nav>
     </div>
     <div class="brand-tagline">The patient, methodical, wise AI tutor. Any age, any subject.</div>
-    <span class="ver" id="verLine">v5.51 beta · pub 18 Jun 26 <span id="tokenReadout" class="tok"></span></span>
+    <span class="ver" id="verLine">v5.52 beta · pub 18 Jun 26 <span id="tokenReadout" class="tok"></span></span>
     <span id="pts" hidden>0</span><span id="streak" hidden>0</span>
   </header>
   <div class="header-copy" id="headerCopy">
@@ -2797,6 +2807,57 @@ applyTheme(store.getItem('sb_theme') || 'graph');
     m.steps.forEach(function(t){ var li=document.createElement('li'); li.innerHTML=t; ol.appendChild(li); });
     $w('wizElKey').placeholder = m.ph;
     $w('wizPremiumOpen').href = m.url;
+    var st=$w('wizElStatus'); if (st){ st.style.display='none'; st.className=''; }
+  }
+
+  function wizElStatus(kind, msg){
+    var st=$w('wizElStatus'); if (!st) return;
+    st.className = kind; st.textContent = msg; st.style.display='block';
+  }
+
+  async function connectWizVoiceKey(){
+    var k = $w('wizElKey').value.trim();
+    if (!k){ wizElStatus('bad', 'Paste a voice key first.'); return; }
+
+    if (wvp === 'eleven'){
+      // ElevenLabs: real API validation + dynamic voice load, via the app's proven path
+      wizElStatus('working', 'Checking your ElevenLabs key…');
+      try{
+        elKey = k;
+        if (typeof store!=='undefined') store.setItem('sb_el_key', k);
+        if (typeof loadElVoices === 'function'){ await loadElVoices(); }
+        // loadElVoices clears elKey on failure — check it survived
+        if (elKey && typeof elVoices!=='undefined' && elVoices.length){
+          wizElStatus('ok', '✓ ' + elVoices.length + ' premium voices connected — pick one above');
+          renderVoice();   // refresh the wizard dropdown so the ⭐ voices appear
+          var sel=$w('wizVoiceSelect'); // preselect first premium voice if present
+          for (var i=0;i<sel.options.length;i++){ if (sel.options[i].value.indexOf('el:')===0){ sel.selectedIndex=i; break; } }
+        } else if (elKey){
+          wizElStatus('ok', '✓ Key accepted — voices will load in the app.');
+        } else {
+          wizElStatus('bad', 'That key was rejected. Check it has Text-to-Speech permission and try again.');
+        }
+      }catch(e){
+        wizElStatus('bad', "Couldn't verify the key — check your connection and try again.");
+      }
+    } else {
+      // OpenAI voice key: validate format, set as a usable key so OpenAI voices appear
+      if (k.indexOf('sk-')!==0 || k.indexOf('sk-ant-')===0){
+        wizElStatus('bad', "That doesn't look like an OpenAI key (should start with sk-)."); return;
+      }
+      try{
+        keys.openai = k;
+        if (typeof store!=='undefined') store.setItem('sb_openai_key', k);
+        wizElStatus('ok', '✓ OpenAI voice key saved — ChatGPT voices are now available above.');
+        // make sure the dropdown shows the OpenAI voices group even on the Claude path
+        var sel=$w('wizVoiceSelect');
+        if (sel && !sel.querySelector('optgroup[label*="ChatGPT"]')){
+          var go=document.createElement('optgroup'); go.label='🔊 ChatGPT voices (OpenAI)';
+          ['nova','onyx','shimmer','alloy','echo','fable'].forEach(function(n){ var o=document.createElement('option'); o.value='oai:'+n; o.textContent=n.charAt(0).toUpperCase()+n.slice(1); go.appendChild(o); });
+          sel.insertBefore(go, sel.firstChild); sel.value='oai:nova';
+        }
+      }catch(e){ wizElStatus('bad', 'Something went wrong saving that key.'); }
+    }
   }
   function renderVoice(){
     var isO = (wprov==='openai');
@@ -2859,9 +2920,8 @@ applyTheme(store.getItem('sb_theme') || 'graph');
       var parts = [ $w('wizName').value.trim(), $w('wizYear').value.trim(), $w('wizSubjects').value.trim() ].filter(Boolean);
       var realProfile = document.getElementById('profileInput'); if (realProfile) realProfile.value = parts.join(', ');
       // theme already applied live via applyTheme()
-      // premium voice key (optional)
-      var elk = $w('wizElKey').value.trim();
-      if (elk){ var realEl=document.getElementById('elKeyInput'); if (realEl) realEl.value = elk; if (typeof setElKey==='function'){ try{ setElKey(elk); }catch(e){} } }
+      // premium voice key is already connected live via the Connect button (connectWizVoiceKey);
+      // nothing to do here — elKey / keys.openai are already set + stored.
       // make sure the remember box is ticked (wizard implies "save on this device")
       var rem=document.getElementById('rememberKey'); if (rem) rem.checked = true;
     }catch(e){}
@@ -2899,6 +2959,8 @@ applyTheme(store.getItem('sb_theme') || 'graph');
   // ---- wire events ----
   W.querySelectorAll('.wchoice').forEach(function(c){ c.addEventListener('click', function(){ pickProvider(c.dataset.wprov); }); });
   W.querySelectorAll('.wprem-tab').forEach(function(t){ t.addEventListener('click', function(){ pickVoiceProvider(t.dataset.wvp); }); });
+  $w('wizElConnect').addEventListener('click', connectWizVoiceKey);
+  $w('wizElKey').addEventListener('keydown', function(e){ if (e.key==='Enter'){ e.preventDefault(); connectWizVoiceKey(); } });
   $w('wizKeyInput').addEventListener('input', checkKey);
   $w('wizBack').addEventListener('click', function(){ go(-1); });
   $w('wizNext').addEventListener('click', function(){ go(1); });
