@@ -13,7 +13,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plaito App — Tutor &amp; Setup</title>
-<meta name="description" content="Plaito is the AI tutor that reads a photo of any homework question and works through it with you — checking your answer step by step or coaching you when you're stuck. Any subject, any age. It guides you towards the answer instead of just handing it over.">
+<meta name="description" content="Plaito is the AI tutor that reads a photo of any homework question and works through it with you, checking your answer step by step or coaching you when you're stuck. Any subject, any age. It guides you towards the answer instead of just handing it over.">
 <meta name="theme-color" content="#FFD60A">
 <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Plaito%22%2C%22short_name%22%3A%22Plaito%22%2C%22start_url%22%3A%22./%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23F2F5F3%22%2C%22theme_color%22%3A%22%23FFD60A%22%2C%22description%22%3A%22The%20patient%2C%20methodical%20AI%20tutor.%20Any%20age%2C%20any%20subject.%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage/svg%2Bxml%2C%253Csvg%2520xmlns%3D%2527http%3A//www.w3.org/2000/svg%2527%2520width%3D%2527180%2527%2520height%3D%2527180%2527%2520viewBox%3D%25270%25200%2520180%2520180%2527%253E%253Crect%2520width%3D%2527180%2527%2520height%3D%2527180%2527%2520rx%3D%252740%2527%2520fill%3D%2527%252314213D%2527/%253E%253Crect%2520x%3D%252734%2527%2520y%3D%252786%2527%2520width%3D%2527112%2527%2520height%3D%252740%2527%2520fill%3D%2527%2523FFD60A%2527/%253E%253Ctext%2520x%3D%252790%2527%2520y%3D%2527118%2527%2520font-family%3D%2527Georgia%2Cserif%2527%2520font-size%3D%252786%2527%2520font-weight%3D%2527800%2527%2520fill%3D%2527%2523ffffff%2527%2520text-anchor%3D%2527middle%2527%253EP%253C/text%253E%253C/svg%253E%22%2C%22sizes%22%3A%22any%22%2C%22type%22%3A%22image/svg%2Bxml%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,7 +21,7 @@
 <meta name="apple-mobile-web-app-title" content="Plaito">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27180%27%20height%3D%27180%27%20viewBox%3D%270%200%20180%20180%27%3E%3Crect%20width%3D%27180%27%20height%3D%27180%27%20rx%3D%2740%27%20fill%3D%27%252314213D%27/%3E%3Crect%20x%3D%2734%27%20y%3D%2786%27%20width%3D%27112%27%20height%3D%2740%27%20fill%3D%27%2523FFD60A%27/%3E%3Ctext%20x%3D%2790%27%20y%3D%27118%27%20font-family%3D%27Georgia%2Cserif%27%20font-size%3D%2786%27%20font-weight%3D%27800%27%20fill%3D%27%2523ffffff%27%20text-anchor%3D%27middle%27%3EP%3C/text%3E%3C/svg%3E">
 <meta property="og:title" content="Plaito — the AI tutor that guides, not gives">
-<meta property="og:description" content="Snap a photo of any homework question and work through it together. The relentless, patient AI tutor — any subject, any age. Guides towards, not gives, the answers.">
+<meta property="og:description" content="Snap a photo of any homework question and work through it together. The relentless, patient AI tutor, any subject, any age. Guides towards, not gives, the answers.">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
 <style>
@@ -446,6 +446,8 @@
   .wkey{width:100%; font-family:var(--mono); font-size:.95rem; padding:13px 14px; border:1.5px solid var(--ink); border-radius:10px;}
   .wkeyok{font-size:.88rem; font-weight:700; color:var(--tick); margin-top:10px; padding:9px 12px; background:rgba(47,158,110,.08); border:1.5px solid var(--tick); border-radius:9px; display:none;}
   .wkeyok.show{display:block;}
+  .wkeynote{font-size:.86rem; font-weight:600; color:#8a6d00; margin-top:8px; padding:8px 11px; background:rgba(255,214,10,.12); border:1.5px solid rgba(255,214,10,.55); border-radius:9px; display:none;}
+  .wkeynote.show{display:block;}
   .wtf{width:100%; font-family:var(--body); font-size:.96rem; padding:11px 13px; border:1.5px solid var(--ink); border-radius:10px; margin-bottom:14px;}
 
   .wswatches{display:flex; gap:12px; flex-wrap:wrap; margin:4px 0 4px;}
@@ -492,6 +494,12 @@
   .wiz-greet-card .gspk{font-size:2.2rem;}
   .wiz-greet-card .ggreet{font-family:var(--display); font-weight:800; font-size:1.5rem; margin:12px 0 8px; background:linear-gradient(transparent 60%, var(--hi) 60%); display:inline-block; padding:0 8px;}
   .wiz-greet-card .gsub{color:var(--ink-soft); font-size:.92rem;}
+  /* Quick settings (returning-user edit): drop the first-run preamble, keep every control + key link, tighten the panel. */
+  .settings-only{display:none;}
+  body.settings-mode .settings-only{display:block;}
+  body.settings-mode #setupPreamble{display:none;}
+  body.settings-mode #setupOpen{padding-top:0;}
+  body.settings-mode #setupOpen .setup-step{margin-top:12px;}
 </style>
 </head>
 <body>
@@ -500,7 +508,7 @@
   <div class="wiz-card">
     <div class="wiz-head">
       <span class="wiz-mark">PLAITO</span>
-      <span class="wiz-ver" id="wizVer">v5.55 beta</span>
+      <span class="wiz-ver" id="wizVer">v5.56 beta</span>
       <div class="wiz-prog" id="wizProg"></div>
     </div>
     <div class="wiz-body">
@@ -509,66 +517,67 @@
       <div class="wiz-step" data-w="0">
         <div class="wiz-kicker">Getting started</div>
         <h2 class="wiz-h">Choose your account</h2>
-        <p class="wiz-sub">The tutoring is identical on every account — the difference is just how it's set up and paid for.</p>
+        <p class="wiz-sub">The tutoring is identical on every account, the difference is just how it's set up and paid for.</p>
         <div class="wtier disabled">
           <div class="wtier-head"><h3><span class="wtier-letter">A</span> Managed Account <span class="wsoon">Coming soon</span></h3><span class="wtier-price">$6.99/mo</span></div>
-          <p>We handle everything — no key, no setup. Just sign up and go. (+$4.99 per extra child.)</p>
+          <p>We handle everything, no key, no setup. Just sign up and go. (+$4.99 per extra child.)</p>
         </div>
         <div class="wtier sel" data-wtier="byo">
           <div class="wtier-head"><h3><span class="wtier-letter">B</span> Self-serve Account</h3><span class="wtier-price">Free</span></div>
-          <p>Use your own API key from ChatGPT or Claude (we'll walk you through it). Costs a few cents of credit per question — no subscription, ever.</p>
+          <p>Use your own API key from ChatGPT or Claude (we'll walk you through it). Costs a few cents of credit per question, no subscription, ever.</p>
           <div class="wtier-pick">● Selected</div>
         </div>
         <div class="wtier disabled">
           <div class="wtier-head"><h3><span class="wtier-letter">C</span> Sponsored Account <span class="wsoon">Coming soon</span></h3><span class="wtier-price">Free</span></div>
           <p>Free managed access for families who need it, through schools and our community pool.</p>
         </div>
-        <div class="wnote wnote-priv" style="margin-top:6px">💾 <b>One-time setup, stored on this device.</b> Plaito keeps your key and settings right here in this browser — nothing is sent to us. That means it's quick, but you'll do this once on each device or browser you use.</div>
+        <div class="wnote wnote-priv" style="margin-top:6px">💾 <b>One-time setup, stored on this device.</b> Plaito keeps your key and settings right here in this browser, nothing is sent to us. That means it's quick, but you'll do this once on each device or browser you use.</div>
       </div>
 
       <!-- STEP 1: provider -->
       <div class="wiz-step" data-w="1">
         <div class="wiz-kicker">Step 1 of 4</div>
         <h2 class="wiz-h">Which AI should power Plaito?</h2>
-        <p class="wiz-sub">Plaito borrows its "brain" from one of these. You'll get a key from them — it's quick, and we'll walk you through it.</p>
-        <div class="wchoice" data-wprov="anthropic"><h3>Claude <span class="wtag">$5 FREE TO START</span></h3><p>Anthropic's AI. $5 free credit to try, no card needed to start. (Voice is added separately — we'll help.)</p></div>
-        <div class="wchoice" data-wprov="openai"><h3>ChatGPT <span class="wtag wv">🔊 VOICE INCLUDED</span></h3><p>OpenAI's AI. Built-in spoken voices come from the same key — nothing else to set up.</p></div>
+        <p class="wiz-sub">Plaito borrows its "brain" from one of these. You'll get a key from them, it's quick, and we'll walk you through it.</p>
+        <div class="wchoice" data-wprov="anthropic"><h3>Claude <span class="wtag">$5 FREE TO START</span></h3><p>Anthropic's AI. $5 free credit to try, no card needed to start. (Voice is added separately, we'll help.)</p></div>
+        <div class="wchoice" data-wprov="openai"><h3>ChatGPT <span class="wtag wv">🔊 VOICE INCLUDED</span></h3><p>OpenAI's AI. Built-in spoken voices come from the same key, nothing else to set up.</p></div>
       </div>
 
       <!-- STEP 2: get + paste key -->
       <div class="wiz-step" data-w="2">
         <div class="wiz-kicker">Step 2 of 4</div>
         <h2 class="wiz-h">Get your <span id="wizProvName">Claude</span> key</h2>
-        <p class="wiz-sub">Think of the key like a <b>pay-as-you-go SIM</b> for AI: you load a little credit with the provider and each question costs about a cent — no subscription. It's just a few steps; open the page, create the key, paste it below.</p>
-        <div class="wnote wnote-payg">💡 <b>Tip:</b> when you add credit, maybe skip "auto top-up" for the first month or two — that way there are no surprise charges while you're trying Plaito out.</div>
+        <p class="wiz-sub">Think of the key like a <b>pay-as-you-go SIM</b> for AI: you load a little credit with the provider and each question costs about a cent, no subscription. It's just a few steps; open the page, create the key, paste it below.</p>
+        <div class="wnote wnote-payg">💡 <b>Tip:</b> when you add credit, maybe skip "auto top-up" for the first month or two, that way there are no surprise charges while you're trying Plaito out.</div>
         <ol class="whowto" id="wizHowto"></ol>
         <a class="wopenbtn" id="wizOpenKey" href="#" target="_blank" rel="noopener">Open the key page in a new tab ↗</a>
-        <div class="wnote wnote-priv">🔒 <b>Keep this key to yourself</b> — it's like a password. Don't share it or post it anywhere.</div>
+        <div class="wnote wnote-priv">🔒 <b>Keep this key to yourself</b>, it's like a password. Don't share it or post it anywhere.</div>
         <div class="wlabel">Paste your key here</div>
         <input class="wkey" id="wizKeyInput" placeholder="sk-ant-..." autocomplete="off">
-        <div class="wkeyok" id="wizKeyOk">✓ That's a valid key — we're ready to go!</div>
+        <div class="wkeynote" id="wizKeyNote"></div>
+        <div class="wkeyok" id="wizKeyOk">✓ That's a valid key, we're ready to go!</div>
       </div>
 
       <!-- STEP 3: profile -->
       <div class="wiz-step" data-w="3">
         <div class="wiz-kicker">Step 3 of 4</div>
         <h2 class="wiz-h">Who's Plaito tutoring?</h2>
-        <p class="wiz-sub">A few details let Plaito pitch everything at exactly the right level. None of it is required — but the more you share, the better the fit.</p>
+        <p class="wiz-sub">A few details let Plaito pitch everything at exactly the right level. None of it is required, but the more you share, the better the fit.</p>
         <div class="wlabel">First name <span class="wopt">(optional)</span></div>
         <input class="wtf" id="wizName" placeholder="Ethan">
         <div class="wlabel">Location &amp; school year <span class="wopt">(optional)</span></div>
         <input class="wtf" id="wizYear" placeholder="Year 9, NSW (Australia)">
         <div class="wlabel">Subjects or curriculum <span class="wopt">(optional)</span></div>
-        <input class="wtf" id="wizSubjects" placeholder="Maths, Science — NSW syllabus">
+        <input class="wtf" id="wizSubjects" placeholder="Maths, Science, NSW syllabus">
       </div>
 
       <!-- STEP 4: personalise (colour + voice) -->
       <div class="wiz-step" data-w="4">
         <div class="wiz-kicker">Step 4 of 4</div>
         <h2 class="wiz-h">Let's personalise Plaito</h2>
-        <p class="wiz-sub">Make it feel like yours — choose a look, then give your tutor a voice.</p>
+        <p class="wiz-sub">Make it feel like yours, choose a look, then give your tutor a voice.</p>
         <div class="wlabel">Colour theme</div>
-        <p class="wmini">A bit of fun — pick the accent colour Plaito wears.</p>
+        <p class="wmini">A bit of fun, pick the accent colour Plaito wears.</p>
         <div class="wswatches" id="wizSwatches"></div>
         <div class="wrule"></div>
         <div class="wlabel">Tutor voice</div>
@@ -577,7 +586,7 @@
           <select class="wvoicesel" id="wizVoiceSelect"></select>
           <button class="wplaybtn" id="wizTestVoice" type="button">▶ Test</button>
         </div>
-        <div id="wizVoiceIncluded" class="wnote wnote-payg" style="display:none;margin-top:12px">🔊 <b>ChatGPT voices included</b> — these come from your key, a fraction of a cent each, pay-as-you-go.</div>
+        <div id="wizVoiceIncluded" class="wnote wnote-payg" style="display:none;margin-top:12px">🔊 <b>ChatGPT voices included</b>, these come from your key, a fraction of a cent each, pay-as-you-go.</div>
         <div class="wvgroup-label">💻 Using a device voice</div>
         <div class="wnote wnote-priv">💡 <b>Tip:</b> device voices are free and unlimited, but vary in quality. On iPhone, iPad and Mac you can download free <b>premium "Enhanced" voices</b> in Settings → Accessibility → Spoken Content for a big upgrade.</div>
         <details class="wpremium">
@@ -596,7 +605,7 @@
               <button class="wplaybtn" id="wizElConnect" type="button">Connect</button>
             </div>
             <div class="wkeyok" id="wizElStatus"></div>
-            <div class="wnote wnote-priv" style="margin-top:10px">🔒 <b>Keep this key to yourself too</b> — like the first one, it's private.</div>
+            <div class="wnote wnote-priv" style="margin-top:10px">🔒 <b>Keep this key to yourself too</b>, like the first one, it's private.</div>
           </div>
         </details>
       </div>
@@ -612,7 +621,7 @@
 <div class="modal-bg" id="splitModal" role="dialog" aria-modal="true" aria-label="Multiple questions detected">
   <div class="guide" style="max-width:520px">
     <h2>Looks like more than one question</h2>
-    <p class="lead">I can split these and work through them one at a time — the ones with an answer get checked, the blank ones get coached. Or keep it as a single question.</p>
+    <p class="lead">I can split these and work through them one at a time, the ones with an answer get checked, the blank ones get coached. Or keep it as a single question.</p>
     <div class="box" id="splitList"></div>
     <div class="modal-actions">
       <button class="primary" id="splitYesBtn">Split &amp; go one by one</button>
@@ -623,76 +632,76 @@
 
 <div class="modal-bg" id="helpModal" role="dialog" aria-modal="true" aria-label="What is this and how to get set up">
   <div class="guide">
-    <h2>Plaito — what it is &amp; how to start</h2>
-    <p class="lead"><b>Plaito</b> (a nod to Plato, with the <b>AI</b> built in) is your relentless, patient AI tutor. It reads a photo of a homework question and works through it with you — checking your answer step by step, or coaching you when you're stuck, with hints before answers. The idea is simple: it <b>guides you towards the answer, rather than just handing it over</b>. Any subject, any year level. This is a beta and can occasionally make a mistake, so always sanity-check its arithmetic.</p>
-    <p class="lead"><a href="#" onclick="openProgress();return false;"><b>📈 See my progress &amp; review →</b></a> — a private, on-device summary of what you've practised and where you're improving.</p>
+    <h2>Plaito: what it is &amp; how to start</h2>
+    <p class="lead"><b>Plaito</b> (a nod to Plato, with the <b>AI</b> built in) is your relentless, patient AI tutor. It reads a photo of a homework question and works through it with you, checking your answer step by step, or coaching you when you're stuck, with hints before answers. The idea is simple: it <b>guides you towards the answer, rather than just handing it over</b>. Any subject, any year level. This is a beta and can occasionally make a mistake, so always sanity-check its arithmetic.</p>
+    <p class="lead"><a href="#" onclick="openProgress();return false;"><b>📈 See my progress &amp; review →</b></a>, a private, on-device summary of what you've practised and where you're improving.</p>
 
-    <div class="box safe"><b>Honestly, it's easier than it looks.</b> "API key" sounds technical, but the whole thing is just: make an account, add a few dollars, click <i>Create key</i>, and copy-paste a long password into this app. No coding, no installing anything. Most parents are done in about five minutes — and you only do it once per device. The links below each open in a new tab, so keep this page open to paste back into.</div>
+    <div class="box safe"><b>Honestly, it's easier than it looks.</b> "API key" sounds technical, but the whole thing is just: make an account, add a few dollars, click <i>Create key</i>, and copy-paste a long password into this app. No coding, no installing anything. Most parents are done in about five minutes, and you only do it once per device. The links below each open in a new tab, so keep this page open to paste back into.</div>
 
     <div class="box safe">
-      <b>Is it safe? Yes — there's nothing to leak.</b> There's no company server and no account. Everything — your key, your settings, your progress — is stored <b>only in this browser on this one device</b>. Nothing is ever sent anywhere except directly to the AI provider you choose, to answer each question. Because nothing is collected centrally, there's no pool of data to breach.
+      <b>Is it safe? Yes, there's nothing to leak.</b> There's no company server and no account. Everything (your key, your settings, your progress) is stored <b>only in this browser on this one device</b>. Nothing is ever sent anywhere except directly to the AI provider you choose, to answer each question. Because nothing is collected centrally, there's no pool of data to breach.
     </div>
 
     <div class="box">
-      <b>One device at a time.</b> Because it all lives in this browser, you'll do this quick setup once <b>on each device</b> you want to use — the laptop, the iPad, a phone. They don't share. Two minutes each, then it's remembered until you clear your browsing data.
+      <b>One device at a time.</b> Because it all lives in this browser, you'll do this quick setup once <b>on each device</b> you want to use, the laptop, the iPad, a phone. They don't share. Two minutes each, then it's remembered until you clear your browsing data.
     </div>
 
     <h3>What's an API key, and why do I need one?</h3>
-    <p>The "tutoring brain" is rented directly from an AI company. An API key is like a <b>prepaid SIM card for AI</b>: you load a little credit, and each question sips about a cent of it. It's pay-as-you-go, <b>separate from any ChatGPT Plus or Claude subscription</b> — no monthly fee. <b>$5–10 typically lasts a whole school term</b>, and you can watch exactly what's spent on the provider's website. <b>Claude even gives you $5 of free credit</b> to start, so you can try it at no cost. Pick <i>one</i> of the two below.</p>
+    <p>The "tutoring brain" is rented directly from an AI company. An API key is like a <b>prepaid SIM card for AI</b>: you load a little credit, and each question sips about a cent of it. It's pay-as-you-go, <b>separate from any ChatGPT Plus or Claude subscription</b>, no monthly fee. <b>$5–10 typically lasts a whole school term</b>, and you can watch exactly what's spent on the provider's website. <b>Claude even gives you $5 of free credit</b> to start, so you can try it at no cost. Pick <i>one</i> of the two below.</p>
 
-    <h3>Option A — Claude key (Anthropic)</h3>
+    <h3>Option A: Claude key (Anthropic)</h3>
     <ol>
-      <li>Open <a href="https://console.anthropic.com" target="_blank" rel="noopener"><b>console.anthropic.com</b></a> (opens in a new tab — keep this one open to paste into) and sign in. You can use an existing Claude login.</li>
+      <li>Open <a href="https://console.anthropic.com" target="_blank" rel="noopener"><b>console.anthropic.com</b></a> (opens in a new tab, keep this one open to paste into) and sign in. You can use an existing Claude login.</li>
       <li>Open <b>Billing</b> and add a small amount of credit (e.g. $5–10). Leave auto-reload <b>off</b> so it can never run away.</li>
-      <li>Open <b>API Keys</b> → <b>Create Key</b>. Name it <code>study-buddy</code>.</li>
-      <li>Copy the key (it starts with <code>sk-ant-</code>) — it's shown only once.</li>
+      <li>Open <b>API Keys</b> → <b>Create Key</b>. Name it <code>Plaito</code>.</li>
+      <li>Copy the key (it starts with <code>sk-ant-</code>), it's shown only once.</li>
       <li>Back here: in setup, choose <b>Claude (Anthropic)</b>, paste the key, and finish. Done.</li>
     </ol>
     <p><a href="https://console.anthropic.com" target="_blank" rel="noopener">→ Open the Anthropic console in a new tab</a></p>
 
-    <h3>Option B — ChatGPT key (OpenAI)</h3>
+    <h3>Option B: ChatGPT key (OpenAI)</h3>
     <ol>
       <li>Open <a href="https://platform.openai.com" target="_blank" rel="noopener"><b>platform.openai.com</b></a> (new tab) and sign in.</li>
       <li>Open <b>Billing</b> and add a little credit ($5–10), auto-reload off.</li>
-      <li>Open <b>API keys</b> → <b>Create new secret key</b>. Name it <code>study-buddy</code>. Default (unrestricted) permissions are fine.</li>
-      <li>Copy the key (it starts with <code>sk-</code>) — shown only once.</li>
+      <li>Open <b>API keys</b> → <b>Create new secret key</b>. Name it <code>Plaito</code>. Default (unrestricted) permissions are fine.</li>
+      <li>Copy the key (it starts with <code>sk-</code>), shown only once.</li>
       <li>Back here: in setup, choose <b>ChatGPT (OpenAI)</b>, paste the key, and finish.</li>
     </ol>
     <p><a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">→ Open the OpenAI keys page in a new tab</a></p>
-    <p style="font-size:.88rem; color:var(--ink-soft)">A note on "ChatGPT": your key pays OpenAI for whichever model Plaito uses under the hood — currently <b>GPT-5.4</b>, chosen for its strong reasoning (which matters most for maths). The same key and the same credit also cover the spoken voice, so it's one balance for everything.</p>
+    <p style="font-size:.88rem; color:var(--ink-soft)">A note on "ChatGPT": your key pays OpenAI for whichever model Plaito uses under the hood, currently <b>GPT-5.4</b>, chosen for its strong reasoning (which matters most for maths). The same key and the same credit also cover the spoken voice, so it's one balance for everything.</p>
 
-    <h3>Nicer voice (optional) — ElevenLabs</h3>
-    <p><b>If you're using ChatGPT, you already get a good voice for free from the same key</b> — no need for this. ElevenLabs is mainly worth it if you're using <b>Claude</b> (which has no voice of its own) and want something more natural than the device's built-in voices. It's optional and free to start.</p>
+    <h3>Nicer voice (optional): ElevenLabs</h3>
+    <p><b>If you're using ChatGPT, you already get a good voice for free from the same key</b>, no need for this. ElevenLabs is mainly worth it if you're using <b>Claude</b> (which has no voice of its own) and want something more natural than the device's built-in voices. It's optional and free to start.</p>
     <ol>
-      <li>Sign up at <a href="https://elevenlabs.io" target="_blank" rel="noopener"><b>elevenlabs.io</b></a> (new tab — the free tier covers roughly 10 minutes of speech a month, plenty to try).</li>
-      <li>Click your profile (bottom-left) → <b>API Keys</b> → <b>Create API Key</b>. Name it <code>study-buddy</code>.</li>
-      <li>If it offers permissions, enable <b>Text to Speech</b> and <b>Voices (read)</b> — or just leave it unrestricted. A restricted key is the usual reason a key gets rejected.</li>
+      <li>Sign up at <a href="https://elevenlabs.io" target="_blank" rel="noopener"><b>elevenlabs.io</b></a> (new tab, the free tier covers roughly 10 minutes of speech a month, plenty to try).</li>
+      <li>Click your profile (bottom-left) → <b>API Keys</b> → <b>Create API Key</b>. Name it <code>Plaito</code>.</li>
+      <li>If it offers permissions, enable <b>Text to Speech</b> and <b>Voices (read)</b>, or just leave it unrestricted. A restricted key is the usual reason a key gets rejected.</li>
       <li>Copy the key (it starts with <code>sk_</code>).</li>
       <li>Back here: paste it into the <b>Premium voice</b> box in setup and click <b>Connect voices</b>. Starred ⭐ voices will appear in the voice list.</li>
     </ol>
     <p><a href="https://elevenlabs.io/app/settings/api-keys" target="_blank" rel="noopener">→ Open the ElevenLabs API keys page in a new tab</a></p>
-    <div class="box"><b>Mac tip — free upgrade:</b> even without ElevenLabs, you can download much better system voices at <b>System Settings → Accessibility → Spoken Content → Manage Voices</b> (look for "Premium" English voices). They'll show up in the voice list automatically.</div>
+    <div class="box"><b>Mac tip (free upgrade):</b> even without ElevenLabs, you can download much better system voices at <b>System Settings → Accessibility → Spoken Content → Manage Voices</b> (look for "Premium" English voices). They'll show up in the voice list automatically.</div>
 
     <h3>Keeping your keys safe</h3>
     <ul>
-      <li>A key only ever belongs in this app's setup box — <b>never</b> paste it into an email, message, or chat.</li>
+      <li>A key only ever belongs in this app's setup box, <b>never</b> paste it into an email, message, or chat.</li>
       <li>If a key is ever exposed, revoke it on the provider's site (takes seconds) and create a new one. The most you can lose is the small credit you loaded.</li>
     </ul>
 
     <h3>Tips for good results</h3>
     <ul>
       <li>Photograph one question at a time, or snap the page and drag a box around one question.</li>
-      <li>Clear handwriting helps the tutor read your working — neat is accurate.</li>
+      <li>Clear handwriting helps the tutor read your working, neat is accurate.</li>
       <li>Checking an answer? Make sure your working is inside the highlighted box.</li>
-      <li>If an answer looks wrong, tell the tutor in the chat — it'll recheck, and that's half the learning.</li>
+      <li>If an answer looks wrong, tell the tutor in the chat, it'll recheck, and that's half the learning.</li>
     </ul>
 
     <h3>📲 Add Plaito to your home screen</h3>
-    <p>For the best experience, add Plaito to your home screen — it opens like a real app, full-screen with no browser clutter, one tap away.</p>
+    <p>Add Plaito to your home screen and it opens like a real app, full-screen with no browser clutter, one tap away.</p>
     <div class="install-guide" id="installGuide"></div>
 
     <h3>Tell us what you think</h3>
-    <p>Plaito is in beta and we'd love your feedback — what's working, what's confusing, what you wish it did. It helps shape what comes next.</p>
+    <p>Plaito is in beta and we'd love your feedback: what's working, what's confusing, what you wish it did. It helps shape what comes next.</p>
     <div class="modal-actions" style="justify-content:flex-start; margin-bottom:18px;">
       <button class="fb-btn" type="button" onclick="$('helpModal').classList.remove('show'); openFeedback();">✉️ Open the feedback form</button>
     </div>
@@ -707,26 +716,27 @@
 <div class="wrap">
   <header id="topHeader">
     <div class="header-row">
-      <a href="index.html" class="brand-lockup" id="brandHome" aria-label="Plaito home — back to the landing page">
+      <a href="index.html" class="brand-lockup" id="brandHome" aria-label="Plaito home, back to the landing page">
         <span class="mark">PLAITO</span>
       </a>
       <nav class="head-tools">
         <button class="quiet" id="helpBtn" title="What Plaito is">About</button>
-        <button class="voice-toggle" id="muteBtn" title="Tutor voice — tap to turn on or off" aria-label="Tutor voice"><span class="v-dot"></span> Voice</button>
+        <button class="voice-toggle" id="muteBtn" title="Tutor voice, tap to turn on or off" aria-label="Tutor voice"><span class="v-dot"></span> Voice</button>
       </nav>
     </div>
-    <div class="brand-tagline">The patient, methodical, wise AI tutor. Any age, any subject.</div>
-    <span class="ver" id="verLine">v5.55 beta · pub 18 Jun 26 <span id="tokenReadout" class="tok"></span></span>
+    <div class="brand-tagline">The patient, methodical, polymath AI tutor. Any age, any subject.</div>
+    <span class="ver" id="verLine">v5.56 beta · pub 18 Jun 26 <span id="tokenReadout" class="tok"></span></span>
     <span id="pts" hidden>0</span><span id="streak" hidden>0</span>
   </header>
   <div class="header-copy" id="headerCopy">
-    <p class="creed"><span class="beta-tag">🧪 Beta — double-check the tutor's arithmetic.</span></p>
+    <p class="creed"><span class="beta-tag">🧪 Beta. Double-check the tutor's arithmetic.</span></p>
   </div>
 
   <h2 class="box-heading" id="setupHeading">🎒 Let's get set up for class</h2>
   <div class="panel panel-setup" id="setupPanel">
     <div id="setupOpen">
-      <p class="key-note" style="margin-top:0">This app has no company behind it — no accounts, no server, nothing collected. Everything it needs lives right here on your device, which is why we set it up once at the top. Takes about two minutes, then it folds away. <button type="button" class="linkish" id="setupHelpLink">New here? Read the full guide →</button></p>
+      <p class="key-note" id="setupPreamble" style="margin-top:0">This app has no company behind it, no accounts, no server, nothing collected. Everything it needs lives right here on your device, which is why we set it up once at the top. Takes about two minutes, then it folds away. <button type="button" class="linkish" id="setupHelpLink">New here? Read the full guide →</button></p>
+      <p class="key-note settings-only" id="setupQuickNote" style="margin-top:0">Tweak your name, look, API key or voice. Everything stays on this device.</p>
 
       <div class="setup-step">
         <span class="p-label">1 · Tell us a bit about yourself</span>
@@ -755,12 +765,12 @@
 
       <div class="setup-step">
         <span class="p-label">3 · Connect an API key</span>
-        <p class="key-note">The tutoring brain is rented from an AI company — that's what the key is for. Like a prepaid SIM for AI: load a little credit with Claude or ChatGPT, and each question sips about a cent. $5–10 usually lasts a whole school term. It's pay-as-you-go, separate from any subscription you might already have — no monthly fee. <button type="button" class="linkish" id="keyHelpLink">Get your key and credit set up in a few steps →</button></p>
+        <p class="key-note">Your API key is how you pay the AI company that does the tutoring, like a prepaid SIM. Load a little credit with Claude or ChatGPT and each question costs about a cent, so $5-10 usually lasts a school term. It's pay-as-you-go and separate from any ChatGPT or Claude subscription you might already have. Plaito itself is free. <button type="button" class="linkish" id="keyHelpLink">Get your API key and credit set up →</button></p>
         <div class="provider-row">
           <label><input type="radio" name="provider" value="openai" checked> ChatGPT (OpenAI)</label>
           <label><input type="radio" name="provider" value="anthropic"> Claude (Anthropic)</label>
         </div>
-        <p class="provider-note" id="providerNote">ChatGPT also gives you a good built-in voice from the same key — nothing else to set up.</p>
+        <p class="provider-note" id="providerNote">ChatGPT also gives you a good built-in voice from the same key, nothing else to set up.</p>
         <div class="key-row">
           <input type="password" id="apiKeyInput" placeholder="sk-ant-…" autocomplete="off" aria-label="API key">
           <button id="apiKeyBtn">Connect API key</button>
@@ -778,19 +788,19 @@
           <input type="range" id="rateSlider" min="0.7" max="1.3" step="0.05" value="1" title="Speaking speed" aria-label="Speaking speed">
           <button class="quiet" id="testVoiceBtn">▶ Test</button>
         </div>
-        <p class="key-note"><b>Using ChatGPT?</b> You already get a good voice free — skip this. <b>Using Claude?</b> Claude has no voice, so for natural speech add <b>ElevenLabs</b> (optional): sign up free at <a href="https://elevenlabs.io" target="_blank" rel="noopener">elevenlabs.io</a>, paste the key here, and ⭐ voices join the list.</p>
+        <p class="key-note"><b>Using ChatGPT?</b> You already get a good voice free. Skip this. <b>Using Claude?</b> Claude has no voice, so for natural speech add <b>ElevenLabs</b> (optional): sign up free at <a href="https://elevenlabs.io" target="_blank" rel="noopener">elevenlabs.io</a>, paste the key here, and ⭐ voices join the list.</p>
         <div class="key-row">
           <input type="password" id="elKeyInput" placeholder="sk_…  (optional)" autocomplete="off" aria-label="ElevenLabs API key">
           <button id="elKeyBtn">Connect voices</button>
         </div>
       </div>
 
-      <button class="done-bar" id="setupDoneBtn">✅ Done — ready for class</button>
+      <button class="done-bar" id="setupDoneBtn">✅ Done, ready for class</button>
     </div>
 
-    <button id="setupClosed" style="display:none" type="button" aria-label="Edit your setup">
+    <button id="setupClosed" style="display:none" type="button" aria-label="Review your settings">
       <span class="setup-summary" id="setupSummary"></span>
-      <span class="setup-edit-hint" id="setupEditBtn">⚙️ Edit my setup</span>
+      <span class="setup-edit-hint" id="setupEditBtn">⚙️ Review my settings</span>
     </button>
   </div>
 
@@ -819,7 +829,7 @@
       <select id="camSelect" title="Choose camera (front / back)"></select>
       <div class="shutter-row" id="shutterRow">
         <button class="primary big shutter" id="snapNowBtn">📸 Snap now</button>
-        <button class="big" id="autoSnapBtn" title="Hands-free — counts 3·2·1 so you can hold the page with both hands">⏱ Hands-free 3·2·1</button>
+        <button class="big" id="autoSnapBtn" title="Hands-free, counts 3·2·1 so you can hold the page with both hands">⏱ Hands-free 3·2·1</button>
       </div>
     </div>
     <div class="fallback">Question on this screen? <kbd>⌃⌘⇧4</kbd> to screenshot it, then <kbd>⌘V</kbd> anywhere on this page. You can also drag an image in or <a href="#" id="fileLink">choose a file</a>.</div>
@@ -829,7 +839,7 @@
 
   <!-- STEP 2: highlight one question -->
   <div class="panel" id="selector">
-    <div class="sel-help">📄 Got it. Highlight the part you want help with — one question, a few, or the whole thing. I'll keep the rest of the page in view for context, so nothing's lost. <span style="opacity:.8">(Box more than one part and I'll take them one at a time.)</span></div>
+    <div class="sel-help">📄 Got it. Highlight the part you want help with, one question, a few, or the whole thing. I'll keep the rest of the page in view for context, so nothing's lost. <span style="opacity:.8">(Box more than one part and I'll take them one at a time.)</span></div>
     <div class="sel-wrap">
       <div class="sel-stage" id="selStage">
         <img id="pageImg" alt="The captured page">
@@ -852,7 +862,7 @@
 
   <!-- STEP 3: tutoring -->
   <div class="panel" id="sessionBar" style="display:none">
-    <div class="section-label">🕘 This session — tap any question to revisit it</div>
+    <div class="section-label">🕘 This session, tap any question to revisit it</div>
     <div id="sessionChips" class="next-row" style="justify-content:flex-start; margin-top:4px"></div>
   </div>
 
@@ -888,14 +898,14 @@
     </div>
 
     <div class="block" id="hintsBlock" style="display:none">
-      <div class="section-label">Hints — one at a time (full points if you don't need them!)</div>
+      <div class="section-label">Hints, one at a time (full points if you don't need them!)</div>
       <div id="hintsContainer"></div>
       <div style="margin-top:14px"><button id="nextHintBtn">Show hint 1</button></div>
     </div>
 
     <div class="vault" id="vault" style="display:none">
       <div style="font-size:1.5rem">🔒</div>
-      <p id="vaultText">Have a go first. Stuck, or had a crack? Either way, let's work through it together — the tutor's way.</p>
+      <p id="vaultText">Have a go first. Stuck, or had a crack? Either way, let's work through it together, the tutor's way.</p>
       <button class="primary big" id="revealBtn" style="width:100%">🧭 Walk me through it, step by step</button>
       <button class="path-skip" id="revealSkip">or skip straight to the worked answer</button>
     </div>
@@ -905,13 +915,13 @@
       <span class="answer-final" id="finalAnswer"></span>
 
       <div id="pathChoice" style="display:none">
-        <p class="path-q">Let's work it out together — the tutor's way.</p>
+        <p class="path-q">Let's work it out together, the tutor's way.</p>
         <button class="primary big" id="choiceStrategy" style="width:100%">🧭 Walk me through it, step by step</button>
         <button class="path-skip" id="choiceSolution">or skip straight to the worked answer</button>
       </div>
 
       <div id="strategyWrap" style="display:none">
-        <div class="section-label">Strategy — your call at each step</div>
+        <div class="section-label">Strategy, your call at each step</div>
         <div id="strategyArea"></div>
         <div class="btn-row" id="afterStrategyRow" style="display:none; justify-content:flex-start; margin-top:14px">
           <button id="seeSolutionBtn">📝 See the worked solution</button>
@@ -945,7 +955,7 @@
   </div>
 
   <div class="panel" id="progressPanel" style="margin-top:24px; display:none;">
-    <div class="section-label">📈 Progress &amp; review — stored only on this device</div>
+    <div class="section-label">📈 Progress &amp; review, stored only on this device</div>
     <div id="progressStats"></div>
     <div class="btn-row" style="justify-content:flex-start">
       <button class="primary" id="reviewBtn">🧠 Strengths &amp; weaknesses review</button>
@@ -975,10 +985,10 @@
     <p><b>The short version: Plaito has no server and no accounts, so there's nowhere for us to collect or store your data.</b> Everything Plaito needs lives in your own browser on this device.</p>
 
     <h3>What's stored, and where</h3>
-    <p>Your API key(s), your year-level/subject notes, your theme, and your progress log are saved in this browser's local storage — on your device only. They're never sent to us (there is no "us" server to send them to), and they stay until you clear your browser data. Don't tick "remember" on a shared computer.</p>
+    <p>Your API key(s), your year-level/subject notes, your theme, and your progress log are saved in this browser's local storage, on your device only. They're never sent to us (there is no "us" server to send them to), and they stay until you clear your browser data. Don't tick "remember" on a shared computer.</p>
 
     <h3>What leaves your device, and to whom</h3>
-    <p>When you ask for help, the question (your photo and any text) is sent directly to the AI provider <i>you chose</i> — Anthropic (Claude) or OpenAI (ChatGPT) — to generate the tutoring. If you turn on premium voices, the text to be spoken is sent to OpenAI or ElevenLabs to make the audio. That's the only place your question content goes, and only to the provider you picked. Your key is sent only to that same provider.</p>
+    <p>When you ask for help, the question (your photo and any text) is sent directly to the AI provider <i>you chose</i>, either Anthropic (Claude) or OpenAI (ChatGPT), to generate the tutoring. If you turn on premium voices, the text to be spoken is sent to OpenAI or ElevenLabs to make the audio. That's the only place your question content goes, and only to the provider you picked. Your key is sent only to that same provider.</p>
 
     <h3>Analytics</h3>
     <p>Plaito uses Google Analytics to count visits and understand broad usage (how many people, roughly where, which devices). This sets cookies and sends standard visit data to Google. It does <b>not</b> capture your questions, your working, or your API keys. If you'd rather not be counted, a tracker-blocking browser or extension will stop it.</p>
@@ -999,7 +1009,7 @@
   <div class="fb-head">
     <div>
       <div class="fb-title">We're in beta. Always learning.</div>
-      <div class="fb-sub">Your feedback is welcome — it shapes what comes next.</div>
+      <div class="fb-sub">Your feedback is welcome, it shapes what comes next.</div>
     </div>
     <button class="fb-x" onclick="closeFeedback()" aria-label="Close feedback">✕</button>
   </div>
@@ -1097,6 +1107,9 @@ function renderSetup(){
   $('setupPanel').classList.toggle('closed', done);
   document.body.classList.toggle('setup-collapsed', done);
   if (done){
+    document.body.classList.remove('settings-mode');
+    $('setupHeading').textContent = "🎒 Let's get set up for class";
+    $('setupDoneBtn').textContent = '✅ Done, ready for class';
     const both = keys.openai && keys.anthropic;
     const who = profile ? ('🎓 ' + profile) : '🪄 Adapting automatically';
     const eng = (provider === 'openai' ? 'ChatGPT' : 'Claude') + (both ? ' · both keys saved' : '');
@@ -1110,18 +1123,32 @@ function renderSetup(){
     updateKeyPlaceholder();
   }
 }
-function openSetup(){
+function _openSetupPanel(){
   document.body.classList.remove('in-question');   // leave working mode so the expanded panel shows
   store.removeItem('sb_setup_done');
   renderSetup();
   $('setupPanel').scrollIntoView({behavior:'smooth'});
+}
+// Full setup: first run + error recovery (no key / rejected key). Loud, all the chrome.
+function openSetup(){
+  document.body.classList.remove('settings-mode');
+  $('setupHeading').textContent = "🎒 Let's get set up for class";
+  $('setupDoneBtn').textContent = '✅ Done, ready for class';
+  _openSetupPanel();
+}
+// Quick settings: a returning user tweaking things. Same real controls, decluttered.
+function openSettings(){
+  document.body.classList.add('settings-mode');
+  $('setupHeading').textContent = '⚙️ Review my settings';
+  $('setupDoneBtn').textContent = '✅ Save changes';
+  _openSetupPanel();
 }
 function updateKeyPlaceholder(){
   const pv = document.querySelector('input[name=provider]:checked')?.value || 'openai';
   // selecting a provider makes it active immediately (its key, if saved, becomes live)
   setActiveProvider(pv);
   const has = !!keys[pv];
-  $('apiKeyInput').placeholder = has ? '✓ ' + (pv==='openai'?'ChatGPT':'Claude') + ' key saved — paste a new one to replace' : (pv === 'openai' ? 'sk-…' : 'sk-ant-…');
+  $('apiKeyInput').placeholder = has ? '✓ ' + (pv==='openai'?'ChatGPT':'Claude') + ' key saved, paste a new one to replace' : (pv === 'openai' ? 'sk-…' : 'sk-ant-…');
   // live status line reflects the active key
   const st = $('keyStatus');
   if (st){
@@ -1131,8 +1158,8 @@ function updateKeyPlaceholder(){
   rebuildVoiceOptions();
   const note = document.getElementById('providerNote');
   if (note) note.textContent = (pv === 'openai')
-    ? 'ChatGPT also gives you a good built-in voice from the same key — nothing else to set up.'
-    : 'Claude is text-only, so for a spoken voice you\'ll add a separate provider (e.g. ElevenLabs) in the voice step — or use your device\'s built-in voice.';
+    ? 'ChatGPT also gives you a good built-in voice from the same key, nothing else to set up.'
+    : 'Claude is text-only, so for a spoken voice you\'ll add a separate provider (e.g. ElevenLabs) in the voice step, or use your device\'s built-in voice.';
 }
 document.querySelectorAll('input[name=provider]').forEach(r => r.addEventListener('change', updateKeyPlaceholder));
 
@@ -1164,7 +1191,7 @@ function checkKeyLive(){
   }
   st.style.display='block';
   const okPrefix = chosen==='anthropic' ? v.startsWith('sk-ant-') : v.startsWith('sk-');
-  if (okPrefix){ st.className='key-status ok'; st.textContent='✓ Looks like a valid '+(chosen==='openai'?'ChatGPT':'Claude')+' key — tap Done to connect it'; }
+  if (okPrefix){ st.className='key-status ok'; st.textContent='✓ Looks like a valid '+(chosen==='openai'?'ChatGPT':'Claude')+' key, tap Done to connect it'; }
   else { st.className='key-status bad'; st.textContent="That doesn't look like a "+(chosen==='openai'?'ChatGPT (sk-…)':'Claude (sk-ant-…)')+' key'; }
 }
 $('apiKeyInput').addEventListener('input', checkKeyLive);
@@ -1190,7 +1217,7 @@ function connectKey(){
   rebuildVoiceOptions();
   if (provider==='openai'){
     const sel=$('voiceSelect'); if (sel && !sel.value.startsWith('el:')) sel.value='oai:nova';
-    st.textContent += ' — great voices now available, no extra setup';
+    st.textContent += ', great voices now available, no extra setup';
   }
   toast((provider==='openai'?'ChatGPT':'Claude') + ' key connected ✓');
 }
@@ -1201,9 +1228,9 @@ function connectKey(){
   const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
   const isAndroid = /Android/.test(ua);
   if (isIOS){
-    el.innerHTML = "<b>On iPhone or iPad (Safari):</b><br>1. Tap the <b>Share</b> button (the square with an arrow) at the bottom or top of the screen.<br>2. Scroll down and tap <b>Add to Home Screen</b>.<br>3. Tap <b>Add</b> — Plaito will appear on your home screen like an app.";
+    el.innerHTML = "<b>On iPhone or iPad (Safari):</b><br>1. Tap the <b>Share</b> button (the square with an arrow) at the bottom or top of the screen.<br>2. Scroll down and tap <b>Add to Home Screen</b>.<br>3. Tap <b>Add</b>. Plaito will appear on your home screen like an app.";
   } else if (isAndroid){
-    el.innerHTML = "<b>On Android (Chrome):</b><br>1. Tap the <b>⋮</b> menu (top right).<br>2. Tap <b>Add to Home screen</b> (or <b>Install app</b>).<br>3. Tap <b>Add</b> — Plaito will appear on your home screen like an app.";
+    el.innerHTML = "<b>On Android (Chrome):</b><br>1. Tap the <b>⋮</b> menu (top right).<br>2. Tap <b>Add to Home screen</b> (or <b>Install app</b>).<br>3. Tap <b>Add</b>. Plaito will appear on your home screen like an app.";
   } else {
     el.innerHTML = "<b>On a computer (Chrome or Edge):</b> look for an <b>install icon</b> in the address bar (a screen with a downward arrow), or open the <b>⋮</b> menu and choose <b>Install Plaito</b>. On a phone, open this page in your browser and use its <b>Add to Home Screen</b> option.";
   }
@@ -1229,13 +1256,13 @@ $('setupDoneBtn').addEventListener('click', () => {
   const chosen = document.querySelector('input[name=provider]:checked')?.value || 'anthropic';
   const typed = $('apiKeyInput').value.trim();
   if (typed){
-    if (chosen === 'anthropic' && !typed.startsWith('sk-ant-')){ alert("A Claude key starts with sk-ant- — that looks like something else."); return; }
-    if (chosen === 'openai' && !typed.startsWith('sk-')){ alert("An OpenAI key starts with sk- — that looks like something else."); return; }
+    if (chosen === 'anthropic' && !typed.startsWith('sk-ant-')){ alert("A Claude key starts with sk-ant-, that looks like something else."); return; }
+    if (chosen === 'openai' && !typed.startsWith('sk-')){ alert("An OpenAI key starts with sk-, that looks like something else."); return; }
     keys[chosen] = typed;
     if ($('rememberKey').checked) store.setItem(chosen==='openai'?'sb_openai_key':'sb_anthropic_key', typed);
     else store.removeItem(chosen==='openai'?'sb_openai_key':'sb_anthropic_key');
   } else if (!keys[chosen]){
-    alert("To finish setup, paste an API key — either ChatGPT (OpenAI) or Claude (Anthropic).");
+    alert("To finish setup, paste an API key, either ChatGPT (OpenAI) or Claude (Anthropic).");
     return;
   }
   setActiveProvider(chosen);
@@ -1247,7 +1274,7 @@ $('setupDoneBtn').addEventListener('click', () => {
   renderSetup();
   toast((provider==='openai'?'ChatGPT':'Claude') + ' key connected ✓');
 });
-$('setupClosed').addEventListener('click', openSetup);
+$('setupClosed').addEventListener('click', openSettings);
 
 /* ================= state ================= */
 let mode = 'auto';   // unified flow: the tutor detects attempt-state (none/partial/complete) and responds accordingly
@@ -1420,7 +1447,7 @@ async function startCamera(deviceId){
     $('camOff').style.display='block';
     const insecure = location.protocol !== 'https:' && location.hostname !== 'localhost';
     $('camOff').textContent = insecure
-      ? "The camera only works on a secure (https) connection. This page is on http right now, so the browser blocks it with no prompt. Once the site is on https the camera will work — for now, please use Upload above."
+      ? "The camera only works on a secure (https) connection. This page is on http right now, so the browser blocks it with no prompt. Once the site is on https the camera will work, for now, please use Upload above."
       : "Camera permission was blocked or dismissed. Click the camera icon in the address bar (or System Settings → Privacy & Security → Camera) to allow it, then tap Use Camera again. Or just use Upload above.";
   }
 }
@@ -1613,7 +1640,7 @@ function offerSplit(det){
     student_answer: pt.student_answer || '',
     label: pt.label || ''
   }));
-  const list = det.parts.map(pt => '• ' + (pt.label ? '(' + pt.label + ') ' : '') + (pt.student_answer ? '— your answer: ' + pt.student_answer : '— no attempt')).join('<br>');
+  const list = det.parts.map(pt => '• ' + (pt.label ? '(' + pt.label + ') ' : '') + (pt.student_answer ? 'your answer: ' + pt.student_answer : 'no attempt')).join('<br>');
   $('splitList').innerHTML = (det.shared_instruction ? '<b>' + escapeHtml(det.shared_instruction) + '</b><br>' : '') + list;
   $('splitModal').classList.add('show');
 }
@@ -1711,7 +1738,7 @@ async function callAPI(messages){
     if (data.error){
       if (/api key|auth/i.test(data.error.message || '')){
         keys[provider]=null; store.removeItem(provider==='openai'?'sb_openai_key':'sb_anthropic_key'); apiKey=null; openSetup();
-        throw new Error("that OpenAI key was rejected — re-enter it in setup");
+        throw new Error("that OpenAI key was rejected, re-enter it in setup");
       }
       throw new Error(data.error.message || 'API error');
     }
@@ -1732,7 +1759,7 @@ async function callAPI(messages){
   if (data.error){
     if (/authentication|invalid x-api-key/i.test(data.error.message || '')){
       keys[provider]=null; store.removeItem(provider==='openai'?'sb_openai_key':'sb_anthropic_key'); apiKey=null; openSetup();
-      throw new Error("that Claude key was rejected — re-enter it in setup");
+      throw new Error("that Claude key was rejected, re-enter it in setup");
     }
     throw new Error(data.error.message || 'API error');
   }
@@ -1800,7 +1827,7 @@ async function startTutoring(part){
     renderSessionChips();
     updateQueueBanner();
   }catch(err){
-    showError("Hmm, couldn't read that one — " + (err.message||'') + ". Try highlighting a tighter box, or hold the page flatter and closer.");
+    showError("Hmm, couldn't read that one, " + (err.message||'') + ". Try highlighting a tighter box, or hold the page flatter and closer.");
     $('selector').style.display='block';
   }finally{ $('loading').style.display='none'; thinkingOff(); }
 }
@@ -1845,9 +1872,9 @@ function renderResults(isPractice, restore){
 
   if (isCheck){
     const v = $('verdict');
-    if (coaching.verdict === 'correct'){ v.className='verdict good'; v.textContent='✓ Correct — nice work'; }
+    if (coaching.verdict === 'correct'){ v.className='verdict good'; v.textContent='✓ Correct, nice work'; }
     else if (coaching.verdict === 'no_working'){ v.className='verdict bad'; v.textContent='Can\u2019t see your working'; }
-    else { v.className='verdict bad'; v.textContent='Not quite — let\u2019s unpack it'; }
+    else { v.className='verdict bad'; v.textContent='Not quite, let\u2019s unpack it'; }
     // show what the tutor read as the student's answer, editable so a handwriting misread can be fixed & re-checked
     const ar = $('answerRead'); ar.innerHTML='';
     const sa = (coaching.student_answer || '').trim();
@@ -1909,7 +1936,7 @@ function renderResults(isPractice, restore){
       fillSolution('The correct answer is ' + (coaching.correct_answer||''));
     } else {
       $('vault').style.display='block';
-      $('vaultText').textContent = 'Try the fix above if you can — or if you\'re stuck, let\'s walk through the strategy and the full solution together.';
+      $('vaultText').textContent = 'Try the fix above if you can, or if you\'re stuck, let\'s walk through the strategy and the full solution together.';
       $('revealBtn').textContent = "Walk me through it →";
       fillSolution('The correct answer is ' + (coaching.correct_answer||''));
       if (!restore){
@@ -1959,7 +1986,7 @@ async function recheckWithAnswer(corrected){
     if (session[currentIdx]){ session[currentIdx].coaching = coaching; session[currentIdx].history = history; }
     renderResults(false, true);   // re-render without re-scoring
   }catch(err){
-    showError("Couldn't re-check just then — give it another go.");
+    showError("Couldn't re-check just then, give it another go.");
   }finally{ $('loading').style.display='none'; thinkingOff(); }
 }
 
@@ -1987,11 +2014,11 @@ function resetPathChoice(){
   const q = document.querySelector('.path-q');
   const strat = $('choiceStrategy'), skip = $('choiceSolution');
   if (wasCorrect){
-    if (q) q.textContent = 'Well done — you got there. Want to run through why it works, to lock it in?';
-    if (strat) strat.textContent = '🧭 Lock it in — run through the thinking';
+    if (q) q.textContent = 'Well done, you got there. Want to run through why it works, to lock it in?';
+    if (strat) strat.textContent = '🧭 Lock it in, run through the thinking';
     if (skip) skip.textContent = 'or just see the worked answer';
   } else {
-    if (q) q.textContent = "Let's work it out together — the tutor's way.";
+    if (q) q.textContent = "Let's work it out together, the tutor's way.";
     if (strat) strat.textContent = '🧭 Walk me through it, step by step';
     if (skip) skip.textContent = 'or skip straight to the worked answer';
   }
@@ -2058,7 +2085,7 @@ function renderStratStep(strat, i){
   if (i >= strat.length){
     const done = document.createElement('div');
     done.className='strat-done';
-    done.textContent = "🎯 That's the full strategy — now you know the why, not just the what.";
+    done.textContent = "🎯 That's the full strategy, now you know the why, not just the what.";
     area.appendChild(done);
     speak("That's the strategy worked through. If you'd like to see the full written solution, tap to see it below.");
     if ($('afterStrategyRow')) $('afterStrategyRow').style.display='flex';
@@ -2098,8 +2125,8 @@ function renderStratStep(strat, i){
       block.appendChild(fb);
       if (session[currentIdx]) session[currentIdx].stratIdx = i+1;
       const lead = oi===correctIdx
-        ? (wasCorrect ? 'Exactly — that\'s the move you spotted. ' : 'Correct. ')
-        : (wasCorrect ? 'Worth a look — the stronger move here is the other one. ' : 'Not the strongest choice. ');
+        ? (wasCorrect ? 'Exactly, that\'s the move you spotted. ' : 'Correct. ')
+        : (wasCorrect ? 'Worth a look, the stronger move here is the other one. ' : 'Not the strongest choice. ');
       speak(lead + (step.why||''));
       setTimeout(() => renderStratStep(strat, i+1), 400);
     });
@@ -2132,7 +2159,7 @@ function doReveal(){
   if (!scored){
     scored = true;
     const p = Math.max(30 - hintsUsed*5, 10);
-    award(p, hintsUsed===0 ? 'Worked through with no hints 💪' : 'Nice work — question complete.', null);
+    award(p, hintsUsed===0 ? 'Worked through with no hints 💪' : 'Nice work, question complete.', null);
     logPerf({ t:Date.now(), topic:coaching.topic, mode: e && e.isPractice ? 'practice' : 'solve', result:'completed', hints:hintsUsed });
   }
   renderSessionChips();
@@ -2171,7 +2198,7 @@ async function askTutor(){
     speak(text);
   }catch(err){
     history.pop();
-    addBubble('Tutor', "Sorry, I dropped out for a second — ask me that again?");
+    addBubble('Tutor', "Sorry, I dropped out for a second, ask me that again?");
   }finally{
     tb.remove();
     thinkingOff();
@@ -2187,7 +2214,7 @@ function saveProfileNow(){
   const st = $('profileStatus');
   if (st){
     st.style.display = 'block';
-    st.textContent = profile ? '\u2713 Saved \u2014 the tutor will use this' : 'Cleared';
+    st.textContent = profile ? '\u2713 Saved, the tutor will use this' : 'Cleared';
     clearTimeout(st._t); st._t = setTimeout(() => { st.style.display='none'; }, 2600);
   }
 }
@@ -2242,7 +2269,7 @@ $('similarBtn').addEventListener('click', async () => {
     renderSessionChips();
   }catch(err){
     history.pop();
-    showError("Couldn't cook up a practice question just then — give it another go.");
+    showError("Couldn't cook up a practice question just then, give it another go.");
   }finally{ $('loading').style.display='none'; thinkingOff(); $('similarBtn').disabled=false; $('similarBtn').textContent='🔁 Similar question to practise'; }
 });
 
@@ -2313,7 +2340,7 @@ function renderStats(){
   const log = getLog(), box = $('progressStats');
   box.innerHTML = '';
   if (!log.length){
-    box.innerHTML = '<p class="key-note">Nothing logged yet — finish a few questions and this fills up. Everything stays in this browser.</p>';
+    box.innerHTML = '<p class="key-note">Nothing logged yet. Finish a few questions and this fills up. Everything stays in this browser.</p>';
     return;
   }
   const by = {};
@@ -2328,7 +2355,7 @@ function renderStats(){
   Object.entries(by).forEach(([k, v]) => {
     const d = document.createElement('div');
     d.className = 'key-note';
-    let line = '• ' + k + ' — ' + v.n + ' question' + (v.n>1?'s':'');
+    let line = '• ' + k + ': ' + v.n + ' question' + (v.n>1?'s':'');
     if (v.correct) line += ', ' + v.correct + ' checked correct ✓';
     if (v.notQuite) line += ', ' + v.notQuite + ' not quite ✗';
     if (v.hinted) line += ', hints needed on ' + v.hinted;
@@ -2366,7 +2393,7 @@ $('reviewBtn').addEventListener('click', async () => {
     $('reviewOut').textContent = text;
     speak(text);
   }catch(err){
-    $('reviewOut').textContent = 'Hmm, the review didn\'t come through — ' + (err.message || '') ;
+    $('reviewOut').textContent = 'Hmm, the review didn\'t come through, ' + (err.message || '') ;
   }finally{
     thinkingOff();
     $('reviewBtn').disabled = false;
@@ -2413,7 +2440,7 @@ function rebuildVoiceOptions(){
     const oaiReady = (provider === 'openai' && apiKey);
     o.textContent = oaiReady
       ? 'Loading voices…'
-      : 'No voices yet — connect ChatGPT for instant voices, or add ElevenLabs';
+      : 'No voices yet, connect ChatGPT for instant voices, or add ElevenLabs';
     sel.appendChild(o);
   }
   if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
@@ -2451,13 +2478,13 @@ async function loadElVoices(){
     r = await fetch('https://api.elevenlabs.io/v1/voices', { headers:{ 'xi-api-key': elKey } });
   }catch(e){
     // network/shield block — the key itself may be fine, so keep it
-    alert("Couldn't reach ElevenLabs — a browser shield or network block may be stopping api.elevenlabs.io. Your key has been kept; try again with Shields down for this site, or in another browser.");
+    alert("Couldn't reach ElevenLabs, a browser shield or network block may be stopping api.elevenlabs.io. Your key has been kept; try again with Shields down for this site, or in another browser.");
     return false;
   }
   if (!r.ok){
     elKey = null; store.removeItem('sb_el_key'); elVoices = []; rebuildVoiceOptions();
     $('elKeyInput').placeholder = 'sk_…  (optional)';
-    alert('ElevenLabs rejected that key (' + r.status + "). Create a key at elevenlabs.io → API Keys with Text-to-Speech and Voices (read) permissions — or leave it unrestricted — then paste the new one here.");
+    alert('ElevenLabs rejected that key (' + r.status + "). Create a key at elevenlabs.io → API Keys with Text-to-Speech and Voices (read) permissions, or leave it unrestricted, then paste the new one here.");
     return false;
   }
   const data = await r.json();
@@ -2504,13 +2531,13 @@ function closeFeedback(){ document.getElementById('fbPanel').style.display='none
       'Feedback:',
       txt || '(none written)',
       '',
-      '— sent from Plaito ' + (document.getElementById('verLine') ? document.getElementById('verLine').textContent : '')
+      'Sent from Plaito ' + (document.getElementById('verLine') ? document.getElementById('verLine').textContent : '')
     ];
     const url = 'mailto:hello@plaito.study?subject=' + encodeURIComponent('Plaito feedback' + (fbRating ? ' (' + fbRating + '/5)' : '')) +
                 '&body=' + encodeURIComponent(lines.join('\n'));
     window.location.href = url;
     closeFeedback();
-    toast('Thanks — opening your email to send ✓');
+    toast('Thanks, opening your email to send ✓');
   });
 })();
 function toast(msg){
@@ -2720,7 +2747,7 @@ applyTheme(store.getItem('sb_theme') || 'graph');
     anthropic: [
       'Open <b>console.anthropic.com</b> and sign in (or create a free account).',
       'In the left menu, click <b>API keys</b>.',
-      'Click <b>Create Key</b> — name it <span class="wpill">Plaito</span> so you know what it\'s for.',
+      'Click <b>Create Key</b>, name it <span class="wpill">Plaito</span> so you know what it\'s for.',
       'Copy the key (starts with <b>sk-ant-</b>) and paste it below.'
     ],
     openai: [
@@ -2791,6 +2818,15 @@ applyTheme(store.getItem('sb_theme') || 'graph');
   }
   function checkKey(){
     var v=$w('wizKeyInput').value.trim();
+    var note=$w('wizKeyNote');
+    // follow the key: if it clearly belongs to the other provider, switch the wizard to match
+    var det = (typeof providerFromKey==='function') ? providerFromKey(v) : null;
+    if (!v){ if(note) note.classList.remove('show'); }
+    else if (det && det!==wprov){
+      pickProvider(det); renderHowto();
+      var nm = det==='anthropic'?'Claude':'ChatGPT';
+      if(note){ note.textContent='That looks like a '+nm+' key, so we switched you to '+nm+'.'; note.classList.add('show'); }
+    }
     var ok = (wprov==='anthropic' && v.indexOf('sk-ant-')===0) || (wprov==='openai' && v.indexOf('sk-')===0 && v.indexOf('sk-ant-')!==0);
     var valid = ok && v.length>12;
     $w('wizKeyOk').classList.toggle('show', valid);
@@ -2830,18 +2866,18 @@ applyTheme(store.getItem('sb_theme') || 'graph');
         if (typeof store!=='undefined') store.setItem('sb_el_key', k);
         var ok = (typeof loadElVoices === 'function') ? await loadElVoices() : false;
         if (ok && elVoices.length){
-          wizElStatus('ok', '✓ ' + elVoices.length + ' premium voices connected — pick one above');
+          wizElStatus('ok', '✓ ' + elVoices.length + ' premium voices connected, pick one above');
           renderVoice();   // refresh the wizard dropdown so the ⭐ ElevenLabs voices appear
           var sel=$w('wizVoiceSelect');
           for (var i=0;i<sel.options.length;i++){ if (sel.options[i].value.indexOf('el:')===0){ sel.selectedIndex=i; break; } }
         } else if (elKey && ok===false && elVoices.length===0){
           // loadElVoices kept the key but couldn't list voices (e.g. shield/network) — alert already shown by it
-          wizElStatus('bad', "Couldn't load voices — see the message, or try again with shields down.");
+          wizElStatus('bad', "Couldn't load voices, see the message, or try again with shields down.");
         } else {
           wizElStatus('bad', 'That key was rejected. Check it has Text-to-Speech permission and try again.');
         }
       }catch(e){
-        wizElStatus('bad', "Couldn't verify the key — check your connection and try again.");
+        wizElStatus('bad', "Couldn't verify the key, check your connection and try again.");
       }
     } else {
       // OpenAI voice key: validate format, set as a usable key so OpenAI voices appear
@@ -2851,7 +2887,7 @@ applyTheme(store.getItem('sb_theme') || 'graph');
       try{
         keys.openai = k;
         if (typeof store!=='undefined') store.setItem('sb_openai_key', k);
-        wizElStatus('ok', '✓ OpenAI voice key saved — ChatGPT voices are now available above.');
+        wizElStatus('ok', '✓ OpenAI voice key saved, ChatGPT voices are now available above.');
         // make sure the dropdown shows the OpenAI voices group even on the Claude path
         var sel=$w('wizVoiceSelect');
         if (sel && !sel.querySelector('optgroup[label*="ChatGPT"]')){
@@ -2866,7 +2902,7 @@ applyTheme(store.getItem('sb_theme') || 'graph');
     var isO = (wprov==='openai');
     $w('wizVoiceIncluded').style.display = isO?'block':'none';
     $w('wizVoiceSub').textContent = isO
-      ? 'Your key includes voices — or use a device voice. Choose one and tap \u25b6 to hear it.'
+      ? 'Your key includes voices, or use a device voice. Choose one and tap \u25b6 to hear it.'
       : 'Pick a device voice now (free), or add a premium one below. Tap \u25b6 to hear it.';
     // populate the wizard's own voice dropdown for preview (device voices always; OpenAI voices if applicable)
     var sel=$w('wizVoiceSelect'); sel.innerHTML='';
@@ -2894,7 +2930,7 @@ applyTheme(store.getItem('sb_theme') || 'graph');
     // premium blurb
     $w('wizPremiumBlurb').innerHTML = isO
       ? 'Your ChatGPT voices are already included. For an even more lifelike voice, add an <b>ElevenLabs</b> key (paid). You can also add a separate <b>OpenAI</b> voice key if you prefer.'
-      : 'For a more natural voice than your device offers, add a voice key. Pick a provider below \u2014 you\'ll need a key from whichever you choose (each has a quick setup).';
+      : 'For a more natural voice than your device offers, add a voice key. Pick a provider below, you\'ll need a key from whichever you choose (each has a quick setup).';
     pickVoiceProvider('eleven');
   }
 
@@ -2937,26 +2973,25 @@ applyTheme(store.getItem('sb_theme') || 'graph');
       var rem=document.getElementById('rememberKey'); if (rem) rem.checked = true;
     }catch(e){}
 
-    // greeting moment, then run the real Done path + reveal the app
+    // save first (so provider + key are live), then greet in the chosen voice and reveal the app
     var name = $w('wizName').value.trim();
     var greet = name ? ("Alright " + name + ", let's get started!") : "Alright, let's get started!";
+    var done=document.getElementById('setupDoneBtn');
+    try{ if (done) done.click(); }catch(e){}   // PROVEN save path: validates key, saves, sets flag, fires GA, renderSetup
+    if (store.getItem('sb_setup_done')!=='1'){ return; }   // Done refused (no valid key) - stay in the wizard, nothing lost
+    try{
+      if (typeof rebuildVoiceOptions==='function') rebuildVoiceOptions();
+      var realVoice=document.getElementById('voiceSelect');
+      var wv = $w('wizVoiceSelect') ? ($w('wizVoiceSelect').value||'') : '';
+      if (realVoice && (wv.indexOf('el:')===0 || wv.indexOf('oai:')===0) && [].some.call(realVoice.options, function(o){return o.value===wv;})) realVoice.value = wv;
+    }catch(e){}
     var ov=document.createElement('div'); ov.className='wiz-greet-ov';
-    ov.innerHTML='<div class="wiz-greet-card"><div class="gspk">\ud83d\udd0a</div><div class="ggreet">'+greet.replace(/</g,'&lt;')+'</div><div class="gsub">Plaito is ready \u2014 starting our first session\u2026</div></div>';
+    ov.innerHTML='<div class="wiz-greet-card"><div class="gspk">\ud83d\udd0a</div><div class="ggreet">'+greet.replace(/</g,'&lt;')+'</div><div class="gsub">Plaito is ready, starting our first session\u2026</div></div>';
     document.body.appendChild(ov);
-    try{ if (window.speechSynthesis){ var u=new SpeechSynthesisUtterance(greet); speechSynthesis.speak(u); } }catch(e){}
+    try{ if (typeof speak==='function'){ speak(greet); } else if (window.speechSynthesis){ var u=new SpeechSynthesisUtterance(greet); speechSynthesis.speak(u); } }catch(e){}
+    W.style.display='none'; W.setAttribute('aria-hidden','true');
 
-    setTimeout(function(){
-      try{
-        var done=document.getElementById('setupDoneBtn');
-        if (done) done.click();   // <- the PROVEN save path (validates key, saves, sets flag, fires GA, renderSetup)
-      }catch(e){}
-      // if the real Done refused (e.g. no valid key), bail back into the wizard so nothing is lost
-      var ok = (store.getItem('sb_setup_done')==='1');
-      if (ok){
-        W.style.display='none'; W.setAttribute('aria-hidden','true');
-      }
-      if (ov.parentNode) ov.remove();
-    }, 1400);
+    setTimeout(function(){ if (ov.parentNode) ov.remove(); }, 1600);
   }
 
   function go(d){
