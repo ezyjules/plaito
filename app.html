@@ -508,7 +508,7 @@
   <div class="wiz-card">
     <div class="wiz-head">
       <span class="wiz-mark">PLAITO</span>
-      <span class="wiz-ver" id="wizVer">v5.57 beta</span>
+      <span class="wiz-ver" id="wizVer">v5.59 beta</span>
       <div class="wiz-prog" id="wizProg"></div>
     </div>
     <div class="wiz-body">
@@ -518,9 +518,10 @@
         <div class="wiz-kicker">Getting started</div>
         <h2 class="wiz-h">Choose your account</h2>
         <p class="wiz-sub">The tutoring is identical on every account, the difference is just how it's set up and paid for.</p>
-        <div class="wtier disabled">
-          <div class="wtier-head"><h3><span class="wtier-letter">A</span> Managed Account <span class="wsoon">Coming soon</span></h3></div>
+        <div class="wtier disabled" data-wtier="managed">
+          <div class="wtier-head"><h3><span class="wtier-letter">A</span> Managed Account <span class="wsoon" id="wsoonA">Coming soon</span></h3></div>
           <p>We handle everything, no key, no setup. Just sign up and go.</p>
+          <div class="wtier-pick">● Selected</div>
         </div>
         <div class="wtier sel" data-wtier="byo">
           <div class="wtier-head"><h3><span class="wtier-letter">B</span> Self-serve Account</h3><span class="wtier-price">Free</span></div>
@@ -725,7 +726,7 @@
       </nav>
     </div>
     <div class="brand-tagline">The patient, methodical, polymath AI tutor. Any age, any subject.</div>
-    <span class="ver" id="verLine">v5.57 beta · pub 18 Jun 26 <span id="tokenReadout" class="tok"></span></span>
+    <span class="ver" id="verLine">v5.59 beta · pub 18 Jun 26 <span id="tokenReadout" class="tok"></span></span>
     <span id="pts" hidden>0</span><span id="streak" hidden>0</span>
   </header>
   <div class="header-copy" id="headerCopy">
@@ -1088,6 +1089,72 @@ let keys = {
   store.removeItem('sb_api_key');
 })();
 let apiKey = keys[provider] || null;   // the ACTIVE key (downstream code uses this)
+
+// ---- Managed mode (shared test access via ?access=TOKEN&fam=ID) ----
+// Routes tutoring + voice through the Plaito proxy so a small test group uses the owner's
+// keys with no setup, and the keys never reach the browser.
+const WORKER_URL = 'https://plaito-proxy.jules-944.workers.dev';
+let MANAGED = false, hasToken = false, FAMILY_TOKEN = '', FAMILY_ID = '';
+(function detectManaged(){
+  try{
+    const q = new URLSearchParams(location.search);
+    let tok = q.get('access') || '', fam = q.get('fam') || '';
+    if (tok){ store.setItem('sb_access', tok); if (fam) store.setItem('sb_fam', fam); }
+    tok = tok || store.getItem('sb_access') || '';
+    fam = fam || store.getItem('sb_fam') || '';
+    if (tok && WORKER_URL){ hasToken = true; FAMILY_TOKEN = tok; FAMILY_ID = fam || 'family'; MANAGED = (store.getItem('sb_tier') !== 'byo'); }
+  }catch(e){}
+})();
+function gaFam(name, extra){ try{ if (typeof gtag==='function') gtag('event', name, Object.assign({ family: FAMILY_ID }, extra||{})); }catch(e){} }
+function managedErr(msg){
+  if (/expired/i.test(msg)) return 'This access link has expired. Ask whoever shared it for a new one.';
+  if (/token|origin|access/i.test(msg)) return "This access link isn't valid. Check the link, or ask whoever shared it.";
+  return msg || 'Something went wrong reaching the tutor. Try again in a moment.';
+}
+function applyManagedUI(){
+  if (!MANAGED) return;
+  try{
+    document.body.classList.add('managed-mode');
+    if (typeof gtag==='function') gtag('set', 'user_properties', { plaito_family: FAMILY_ID });
+    gaFam('managed_open');
+    var ai = document.getElementById('apiKeyInput');
+    if (ai){
+      var kr = ai.closest('.key-row'); if (kr) kr.style.display='none';
+      var step = ai.closest('.setup-step');
+      if (step){ var lbl = step.querySelector('.p-label'); if (lbl) lbl.textContent = '3 \u00b7 Choose your tutor (ChatGPT or Claude)'; }
+    }
+    var pn = document.getElementById('providerNote'); if (pn) pn.style.display='none';
+    var ks = document.getElementById('keyStatus'); if (ks) ks.style.display='none';
+    var ek = document.getElementById('elKeyInput');
+    if (ek){
+      var er = ek.closest('.key-row');
+      if (er){ er.style.display='none'; var pv = er.previousElementSibling; if (pv && pv.classList && pv.classList.contains('key-note')) pv.style.display='none'; }
+    }
+    var vs = document.getElementById('voiceSelect');
+    if (vs && !document.getElementById('premiumToggleWrap')){
+      var w = document.createElement('label'); w.id='premiumToggleWrap';
+      w.style.cssText='display:flex;align-items:center;gap:8px;margin:8px 0;font-size:14px;cursor:pointer;';
+      w.innerHTML='<input type="checkbox" id="premiumToggle"> \u2b50 Turn on premium voices (uses more credit)';
+      vs.parentNode.insertBefore(w, vs.nextSibling);
+      document.getElementById('premiumToggle').addEventListener('change', function(e){
+        if (e.target.checked){ loadElVoices(); } else { elVoices=[]; rebuildVoiceOptions(); }
+        gaFam('voice_premium_toggle', { on: e.target.checked });
+      });
+      vs.addEventListener('change', function(){ gaFam('voice_selected', { voice: vs.value }); });
+    }
+    document.querySelectorAll('input[name=provider]').forEach(function(r){
+      r.addEventListener('change', function(){ if (r.checked) gaFam('model_selected', { model: r.value }); });
+    });
+    var heading = document.getElementById('setupHeading');
+    if (heading && !document.getElementById('managedNote')){
+      var n = document.createElement('p'); n.id='managedNote'; n.className='key-note';
+      n.textContent = "Test access, no setup needed. Switch the tutor (ChatGPT or Claude) and pick a voice below. Questions run on the owner's account for this trial.";
+      heading.parentNode.insertBefore(n, heading.nextSibling);
+    }
+  }catch(e){}
+}
+if (MANAGED && store.getItem('sb_setup_done')==='1'){ if (document.readyState==='loading') document.addEventListener('DOMContentLoaded', applyManagedUI); else applyManagedUI(); }
+
 let elKey = store.getItem('sb_el_key') || null, elVoices = [];
 let voiceList = [], muted = false, currentAudio = null, lastSpoken = '', audioState = 'idle', speechGen = 0;
 const OAI_VOICES = ['alloy','echo','fable','onyx','nova','shimmer'];   // moved up: rebuildVoiceOptions() runs during early setup render
@@ -1101,7 +1168,7 @@ function setActiveProvider(pv){
 let profile = store.getItem('sb_profile') || '';
 
 function renderSetup(){
-  const done = store.getItem('sb_setup_done') === '1' && !!apiKey;
+  const done = (store.getItem('sb_setup_done') === '1') && (!!apiKey || MANAGED);
   $('setupOpen').style.display = done ? 'none' : 'block';
   $('setupClosed').style.display = done ? 'flex' : 'none';
   $('setupPanel').classList.toggle('closed', done);
@@ -1724,30 +1791,31 @@ function toOpenAIMessages(messages){
 }
 
 async function callAPI(messages){
-  if (!apiKey){
+  if (!apiKey && !MANAGED){
     openSetup();
     throw new Error("finish the setup at the top of the page first");
   }
   if (provider === 'openai'){
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch(MANAGED ? (WORKER_URL+'/api/llm?p=openai') : "https://api.openai.com/v1/chat/completions", {
       method:"POST",
-      headers:{ "Content-Type":"application/json", "Authorization":"Bearer " + apiKey },
+      headers: MANAGED ? { "Content-Type":"application/json", "x-family-token":FAMILY_TOKEN } : { "Content-Type":"application/json", "Authorization":"Bearer " + apiKey },
       body: JSON.stringify({ model:"gpt-5.4", max_tokens:2000, temperature:0.2, messages: toOpenAIMessages(messages) })
     });
     const data = await response.json();
     if (data.error){
-      if (/api key|auth/i.test(data.error.message || '')){
+      const em = (typeof data.error === 'string') ? data.error : (data.error.message || '');
+      if (!MANAGED && /api key|auth/i.test(em)){
         keys[provider]=null; store.removeItem(provider==='openai'?'sb_openai_key':'sb_anthropic_key'); apiKey=null; openSetup();
         throw new Error("that OpenAI key was rejected, re-enter it in setup");
       }
-      throw new Error(data.error.message || 'API error');
+      throw new Error(MANAGED ? managedErr(em) : (em || 'API error'));
     }
     if (data.usage){ lastTokens = { in:data.usage.prompt_tokens||0, out:data.usage.completion_tokens||0, total:data.usage.total_tokens||0 }; updateTokenReadout(); }
     return data.choices?.[0]?.message?.content || '';
   }
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+  const response = await fetch(MANAGED ? (WORKER_URL+'/api/llm?p=anthropic') : "https://api.anthropic.com/v1/messages", {
     method:"POST",
-    headers:{
+    headers: MANAGED ? { "Content-Type":"application/json", "x-family-token":FAMILY_TOKEN } : {
       "Content-Type":"application/json",
       "x-api-key": apiKey,
       "anthropic-version": "2023-06-01",
@@ -1757,11 +1825,12 @@ async function callAPI(messages){
   });
   const data = await response.json();
   if (data.error){
-    if (/authentication|invalid x-api-key/i.test(data.error.message || '')){
+    const em = (typeof data.error === 'string') ? data.error : (data.error.message || '');
+    if (!MANAGED && /authentication|invalid x-api-key/i.test(em)){
       keys[provider]=null; store.removeItem(provider==='openai'?'sb_openai_key':'sb_anthropic_key'); apiKey=null; openSetup();
       throw new Error("that Claude key was rejected, re-enter it in setup");
     }
-    throw new Error(data.error.message || 'API error');
+    throw new Error(MANAGED ? managedErr(em) : (em || 'API error'));
   }
   if (data.usage){ const i=data.usage.input_tokens||0, o=data.usage.output_tokens||0; lastTokens = { in:i, out:o, total:i+o }; updateTokenReadout(); }
   return (data.content || []).filter(b => b.type==='text').map(b => b.text).join('\n');
@@ -2422,7 +2491,7 @@ function rebuildVoiceOptions(){
     sel.appendChild(g);
   };
   // OpenAI voices — available off the SAME key used for tutoring, no extra setup
-  if (provider === 'openai' && apiKey){
+  if ((provider === 'openai' && apiKey) || MANAGED){
     addGroup('🔊 ChatGPT voices (OpenAI)', OAI_VOICES.map(name => ({
       value: 'oai:' + name,
       text: name.charAt(0).toUpperCase() + name.slice(1)
@@ -2476,16 +2545,17 @@ if ('speechSynthesis' in window){
 $('voiceSelect').addEventListener('change', saveVoiceChoice);
 
 async function loadElVoices(){
-  if (!elKey) return false;
+  if (!elKey && !MANAGED) return false;
   let r;
   try{
-    r = await fetch('https://api.elevenlabs.io/v1/voices', { headers:{ 'xi-api-key': elKey } });
+    r = await fetch(MANAGED ? (WORKER_URL+'/api/eleven/voices') : 'https://api.elevenlabs.io/v1/voices', MANAGED ? { headers:{ 'x-family-token':FAMILY_TOKEN } } : { headers:{ 'xi-api-key': elKey } });
   }catch(e){
     // network/shield block — the key itself may be fine, so keep it
     alert("Couldn't reach ElevenLabs, a browser shield or network block may be stopping api.elevenlabs.io. Your key has been kept; try again with Shields down for this site, or in another browser.");
     return false;
   }
   if (!r.ok){
+    if (MANAGED){ elVoices = []; rebuildVoiceOptions(); return false; }
     elKey = null; store.removeItem('sb_el_key'); elVoices = []; rebuildVoiceOptions();
     $('elKeyInput').placeholder = 'sk_…  (optional)';
     alert('ElevenLabs rejected that key (' + r.status + "). Create a key at elevenlabs.io → API Keys with Text-to-Speech and Voices (read) permissions, or leave it unrestricted, then paste the new one here.");
@@ -2653,9 +2723,9 @@ function pauseResume(){
 async function oaiSpeak(text, voice, rate){
   const myGen = speechGen;
   try{
-    const r = await fetch('https://api.openai.com/v1/audio/speech', {
+    const r = await fetch(MANAGED ? (WORKER_URL+'/api/openai/speech') : 'https://api.openai.com/v1/audio/speech', {
       method:'POST',
-      headers:{ 'Authorization': 'Bearer ' + apiKey, 'Content-Type':'application/json' },
+      headers: MANAGED ? { 'x-family-token':FAMILY_TOKEN, 'Content-Type':'application/json' } : { 'Authorization': 'Bearer ' + apiKey, 'Content-Type':'application/json' },
       body: JSON.stringify({ model:'tts-1', voice: voice, input: text.slice(0, 3500) })
     });
     if (myGen !== speechGen) return;          // a newer speak() superseded this — drop it
@@ -2678,9 +2748,9 @@ async function oaiSpeak(text, voice, rate){
 async function elSpeak(text, voiceId, rate){
   const myGen = speechGen;
   try{
-    const r = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceId + '?output_format=mp3_44100_96', {
+    const r = await fetch(MANAGED ? (WORKER_URL+'/api/eleven/speech?voiceId=' + encodeURIComponent(voiceId) + '&output_format=mp3_44100_96') : ('https://api.elevenlabs.io/v1/text-to-speech/' + voiceId + '?output_format=mp3_44100_96'), {
       method:'POST',
-      headers:{ 'xi-api-key': elKey, 'Content-Type':'application/json' },
+      headers: MANAGED ? { 'x-family-token':FAMILY_TOKEN, 'Content-Type':'application/json' } : { 'xi-api-key': elKey, 'Content-Type':'application/json' },
       body: JSON.stringify({ text: text.slice(0, 2400), model_id: 'eleven_turbo_v2_5' })
     });
     if (myGen !== speechGen) return;
@@ -2744,10 +2814,10 @@ applyTheme(store.getItem('sb_theme') || 'graph');
 
   // ---- FIRST-RUN GATE: only show when setup isn't already done ----
   // Returning users (sb_setup_done==='1' AND a real key present) never see it.
-  var alreadyDone = (store.getItem('sb_setup_done') === '1') && !!apiKey;
+  var alreadyDone = (store.getItem('sb_setup_done') === '1') && (!!apiKey || MANAGED);
   if (alreadyDone) return;   // <- existing users sail straight past, untouched
 
-  var TOTAL = 5, cur = 0, wprov = 'anthropic', wvp = 'eleven';
+  var TOTAL = 5, cur = 0, wprov = 'anthropic', wvp = 'eleven', wtier = 'byo';
 
   // dynamic key-step instructions (mirror the app's own guidance)
   var howtos = {
@@ -2961,7 +3031,39 @@ applyTheme(store.getItem('sb_theme') || 'graph');
     if (!wizFiredSteps[nm]){ wizFiredSteps[nm] = true; wizTrack('wizard_step', nm); }
   }
 
+  function managedFinish(){
+    try{
+      var r = document.querySelector('input[name=provider][value="'+wprov+'"]');
+      if (r){ r.checked = true; }
+      if (typeof setActiveProvider==='function') setActiveProvider(wprov);
+      var parts = [ $w('wizName').value.trim(), $w('wizYear').value.trim(), $w('wizSubjects').value.trim() ].filter(Boolean);
+      var rp=document.getElementById('profileInput'); if (rp) rp.value = parts.join(', ');
+      profile = parts.join(', ');
+      store.setItem('sb_profile', profile);
+      store.setItem('sb_provider', wprov);
+      store.setItem('sb_setup_done','1');
+      store.setItem('sb_tier','managed');
+      if (typeof applyManagedUI==='function') applyManagedUI();
+      if (typeof renderSetup==='function') renderSetup();
+      if (typeof rebuildVoiceOptions==='function') rebuildVoiceOptions();
+      var realVoice=document.getElementById('voiceSelect');
+      var wv = $w('wizVoiceSelect') ? ($w('wizVoiceSelect').value||'') : '';
+      if (realVoice && wv && [].some.call(realVoice.options, function(o){return o.value===wv;})) realVoice.value = wv;
+      if (typeof saveVoiceChoice==='function') saveVoiceChoice();
+      if (typeof gaFam==='function') gaFam('managed_setup_done', { model: wprov });
+    }catch(e){}
+    var nm = $w('wizName').value.trim();
+    var greet = nm ? ("Alright " + nm + ", let's get started!") : "Alright, let's get started!";
+    var ov=document.createElement('div'); ov.className='wiz-greet-ov';
+    ov.innerHTML='<div class="wiz-greet-card"><div class="gspk">\ud83d\udd0a</div><div class="ggreet">'+greet.replace(/</g,'&lt;')+'</div><div class="gsub">Plaito is ready, starting our first session\u2026</div></div>';
+    document.body.appendChild(ov);
+    try{ if (typeof speak==='function'){ speak(greet); } else if (window.speechSynthesis){ var u=new SpeechSynthesisUtterance(greet); speechSynthesis.speak(u); } }catch(e){}
+    try{ if (document.activeElement && W.contains(document.activeElement)) document.activeElement.blur(); }catch(e){}
+    W.style.display='none'; W.setAttribute('aria-hidden','true');
+    setTimeout(function(){ if (ov.parentNode) ov.remove(); }, 1600);
+  }
   function finish(){
+    if (MANAGED && wtier==='managed'){ managedFinish(); return; }
     // ---- feed the REAL setup controls, then click the REAL Done button ----
     try{
       // provider radio
@@ -2986,6 +3088,7 @@ applyTheme(store.getItem('sb_theme') || 'graph');
     var done=document.getElementById('setupDoneBtn');
     try{ if (done) done.click(); }catch(e){}   // PROVEN save path: validates key, saves, sets flag, fires GA, renderSetup
     if (store.getItem('sb_setup_done')!=='1'){ return; }   // Done refused (no valid key) - stay in the wizard, nothing lost
+    if (hasToken){ store.setItem('sb_tier','byo'); MANAGED = false; }   // invited user chose self-serve: stay on own key
     try{
       if (typeof rebuildVoiceOptions==='function') rebuildVoiceOptions();
       var realVoice=document.getElementById('voiceSelect');
@@ -3004,15 +3107,33 @@ applyTheme(store.getItem('sb_theme') || 'graph');
   }
 
   function go(d){
-    // hard guard: cannot advance past the key step without a valid key
-    if (d>0 && cur===2 && !checkKey()){ return; }
+    var managedTier = (MANAGED && wtier==='managed');
+    // hard guard: cannot advance past the key step without a valid key (self-serve only)
+    if (d>0 && cur===2 && !managedTier && !checkKey()){ return; }
     if (d>0 && cur===TOTAL-1){ finish(); return; }
-    cur = Math.max(0, Math.min(TOTAL-1, cur+d));
+    var nx = cur + d;
+    if (managedTier && nx===2){ nx = cur + d*2; }   // hop over the key step both ways
+    cur = Math.max(0, Math.min(TOTAL-1, nx));
     show();
   }
 
   // ---- wire events ----
   W.querySelectorAll('.wchoice').forEach(function(c){ c.addEventListener('click', function(){ pickProvider(c.dataset.wprov); }); });
+  // ---- account tier selection (A managed / B self-serve) ----
+  function pickTier(t){
+    wtier = t;
+    W.querySelectorAll('.wtier').forEach(function(c){ c.classList.toggle('sel', c.dataset.wtier===t); });
+    if (hasToken){ MANAGED = (t==='managed'); }   // B = self-serve: own key, calls go direct, proxy unused
+  }
+  W.querySelectorAll('.wtier[data-wtier]').forEach(function(c){
+    c.addEventListener('click', function(){ if (c.classList.contains('disabled')) return; pickTier(c.dataset.wtier); });
+  });
+  // invited (token) users: unlock tier A, pre-select it, and disable the rest for a clean managed path
+  if (hasToken){
+    var aCard = W.querySelector('.wtier[data-wtier="managed"]'); if (aCard) aCard.classList.remove('disabled');
+    var aPill = document.getElementById('wsoonA'); if (aPill) aPill.textContent='Invited';
+    pickTier('managed');   // pre-select managed, but B (self-serve) stays selectable
+  }
   W.querySelectorAll('.wprem-tab').forEach(function(t){ t.addEventListener('click', function(){
     var st=$w('wizElStatus'); if (st){ st.style.display='none'; st.className=''; }  // clear stale status on a real tab switch
     pickVoiceProvider(t.dataset.wvp);
